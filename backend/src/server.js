@@ -10,6 +10,19 @@ const app = express();
 const rootDir = path.resolve(__dirname, "..", "..");
 const port = Number(process.env.PORT || 3000);
 
+function assertRequiredSecurityEnv() {
+  const requiredVariables = [
+    "APP_TOKEN_SECRET",
+    "SUPER_ADMIN_TOKEN_SECRET",
+    "PASSWORD_PEPPER"
+  ];
+  const missing = requiredVariables.filter((name) => !String(process.env[name] || "").trim());
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required security environment variables: ${missing.join(", ")}`);
+  }
+}
+
 let databaseInitializationState = {
   ready: false,
   message: "Database initialization has not started."
@@ -113,4 +126,5 @@ function gracefulShutdown(signal) {
 process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
+assertRequiredSecurityEnv();
 startServer();

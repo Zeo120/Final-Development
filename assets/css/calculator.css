@@ -157,7 +157,38 @@ body {
 }
 
 @media (max-width: 640px) {
+  .calculator-shell {
+    padding: 18px 12px 28px;
+  }
+
+  .calc-header {
+    padding: 12px 12px 0;
+  }
+
   .hero h1 {
     font-size: 1.9rem;
+  }
+
+  .hero {
+    margin-bottom: 20px;
+  }
+
+  .panel {
+    padding: 14px;
+    border-radius: 14px;
+    margin-bottom: 14px;
+  }
+
+  .input-grid,
+  .input-grid.two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .result-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .actions button {
+    width: 100%;
   }
 }

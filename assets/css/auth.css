@@ -188,6 +188,10 @@
   gap: 0;
 }
 
+.auth-container[style*="max-width: 500px"] {
+  max-width: min(500px, 100%);
+}
+
 .admin-hidden-link {
   display: block;
   margin-top: 1.75rem;
@@ -299,5 +303,13 @@ body.is-ready .auth-card {
   .password-toggle {
     right: 10px;
     font-size: 0.85rem;
+  }
+
+  .auth-container[style*="max-width: 500px"] {
+    max-width: 100% !important;
+  }
+
+  .auth-form-panel .glass-card[style*="width: 400px"] {
+    width: 100% !important;
   }
 }

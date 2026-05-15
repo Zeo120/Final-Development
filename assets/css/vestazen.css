@@ -169,6 +169,22 @@ body::before {
   color: rgba(255, 255, 255, 0.65);
 }
 
+@media (max-width: 900px) {
+  .vestazen-shell {
+    padding: 2rem 1rem 2.8rem;
+  }
+
+  .vestazen-hero {
+    border-radius: 26px;
+    padding: 2.2rem;
+  }
+
+  .vestazen-hero::after {
+    inset: 12px;
+    border-radius: 22px;
+  }
+}
+
 @media (max-width: 640px) {
   .vestazen-hero {
     padding: 2rem;
@@ -181,6 +197,12 @@ body::before {
 
   .vestazen-actions a {
     text-align: center;
+  }
+
+  .vestazen-footer {
+    text-align: left;
+    letter-spacing: 0.12rem;
+    line-height: 1.5;
   }
 }
 
@@ -459,5 +481,17 @@ body::before {
 @media (max-width: 640px) {
   .compliance-panel {
     width: 100%;
+    max-width: 100%;
+  }
+
+  .compliance-panel__body {
+    padding: 1rem;
+  }
+
+  .compliance-invoice-table th,
+  .compliance-invoice-table td {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.55rem;
+    white-space: nowrap;
   }
 }

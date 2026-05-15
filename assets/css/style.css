@@ -486,6 +486,37 @@ a {
   min-width: 170px;
 }
 
+.nav-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+#page-tabs-container {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#dashboard-widgets-container > article[style*="grid-column: span 3"] {
+  grid-column: 1 / -1 !important;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.compliance-management__forms form {
+  min-width: 0;
+}
+
+.compliance-form-grid {
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
 @keyframes fadeInUp {
   0% {
     opacity: 0;
@@ -525,13 +556,23 @@ a {
 }
 
 @media (max-width: 768px) {
+  .page-shell {
+    padding: 1.25rem 0.9rem 2rem;
+  }
+
   .nav {
     flex-direction: column;
     align-items: flex-start;
   }
 
+  .nav-actions .btn {
+    width: 100%;
+  }
+
   .nav-links {
     flex-wrap: wrap;
+    gap: 0.8rem;
+    letter-spacing: 0.2em;
   }
 
   .hero {
@@ -546,5 +587,55 @@ a {
   .contact-form button {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  #page-tabs-container {
+    gap: 0.4rem !important;
+  }
+
+  #page-tabs-container .btn,
+  #page-tabs-container button {
+    width: 100%;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-actions .btn {
+    width: 100%;
+  }
+
+  .glass-card[style*="width: 400px"],
+  .glass-card[style*="width: 420px"] {
+    width: min(100%, 420px) !important;
+  }
+
+  #modal-create-page .glass-card,
+  #modal-add-widget .glass-card,
+  #modal-project .glass-card,
+  #modal-task .glass-card,
+  #modal-manage-user .glass-card {
+    width: min(100%, 420px) !important;
+    margin: 0 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-shell {
+    padding: 0.9rem 0.65rem 1.6rem;
+  }
+
+  .brand span {
+    font-size: 0.95rem;
+  }
+
+  .dashboard-hero h1 {
+    font-size: clamp(1.4rem, 8vw, 1.9rem);
+    line-height: 1.2;
+  }
+
+  .dashboard-hero-copy {
+    font-size: 0.92rem;
   }
 }

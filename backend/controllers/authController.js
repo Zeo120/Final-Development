@@ -37,7 +37,7 @@ const MAX_LOGIN_ATTEMPTS = Number(process.env.MAX_LOGIN_ATTEMPTS || 5);
 const LOGIN_LOCKOUT_DURATION_MS = Number(process.env.LOGIN_LOCKOUT_DURATION_MS || 15 * 60 * 1000);
 
 function normalizeLoginIdentifier(value) {
-  return String(value || "").trim();
+  return String(value || "").trim().toLowerCase();
 }
 
 function getLoginKey(role, identifier) {
@@ -118,7 +118,7 @@ function getSuperAdminId() {
 }
 
 function getSuperAdminPassword() {
-  return String(process.env.SUPER_ADMIN_PASSWORD || "super123");
+  return String(process.env.SUPER_ADMIN_PASSWORD || "");
 }
 
 function getSuperAdminPasswordHash() {
@@ -126,18 +126,19 @@ function getSuperAdminPasswordHash() {
 }
 
 function getSuperAdminTokenSecret() {
-  return String(process.env.SUPER_ADMIN_TOKEN_SECRET || "paradigm-super-admin-secret");
+  return String(process.env.SUPER_ADMIN_TOKEN_SECRET || "");
 }
 
 function getAppTokenSecret() {
-  return String(process.env.APP_TOKEN_SECRET || "paradigm-app-secret");
+  return String(process.env.APP_TOKEN_SECRET || "");
 }
 
 async function hasValidSuperAdminCredentials(superAdminId, superAdminPassword) {
-  const normalizedId = String(superAdminId || "").trim();
+  const normalizedId = normalizeLoginIdentifier(superAdminId);
   const normalizedPassword = String(superAdminPassword || "");
   const configuredPasswordHash = getSuperAdminPasswordHash();
-  const matchesId = timingSafeEqualString(normalizedId, getSuperAdminId());
+  const configuredSuperAdminId = normalizeLoginIdentifier(getSuperAdminId());
+  const matchesId = timingSafeEqualString(normalizedId, configuredSuperAdminId);
   const matchesPassword = configuredPasswordHash
     ? await verifyPassword(normalizedPassword, configuredPasswordHash)
     : timingSafeEqualString(normalizedPassword, getSuperAdminPassword());
@@ -240,7 +241,7 @@ async function adminLogin(req, res, next) {
       });
     }
 
-    const normalizedId = String(adminId || "").trim();
+    const normalizedId = normalizeLoginIdentifier(adminId);
     const normalizedPass = String(password || "");
     const lockStatus = await getAccountLockStatus("admin", normalizedId);
     if (lockStatus.locked) {
@@ -287,7 +288,7 @@ async function userLogin(req, res, next) {
       });
     }
 
-    const normalizedUserId = String(userId || "").trim();
+    const normalizedUserId = normalizeLoginIdentifier(userId);
     const normalizedPassword = String(password || "");
     const lockStatus = await getAccountLockStatus("user", normalizedUserId);
     if (lockStatus.locked) {
@@ -323,37 +324,41 @@ async function userLogin(req, res, next) {
   }
 }
 
-async function superAdminLogin(req, res) {
-  const { superAdminId, superAdminPassword } = req.body;
+async function superAdminLogin(req, res, next) {
+  try {
+    const { superAdminId, superAdminPassword } = req.body;
 
-  if (!superAdminId || !superAdminPassword) {
-    return res.status(400).json({
-      success: false,
-      message: "Super admin ID and password are required."
+    if (!superAdminId || !superAdminPassword) {
+      return res.status(400).json({
+        success: false,
+        message: "Super admin ID and password are required."
+      });
+    }
+
+    const normalizedSuperAdminId = normalizeLoginIdentifier(superAdminId);
+    const lockStatus = await getAccountLockStatus("super-admin", normalizedSuperAdminId);
+    if (lockStatus.locked) {
+      return respondWithLockout(res, lockStatus.remainingMs);
+    }
+
+    if (!(await hasValidSuperAdminCredentials(superAdminId, superAdminPassword))) {
+      await recordFailedLoginAttempt("super-admin", normalizedSuperAdminId);
+      return res.status(401).json({
+        success: false,
+        message: "Invalid super admin credentials."
+      });
+    }
+
+    await clearFailedLoginAttempts("super-admin", normalizedSuperAdminId);
+
+    return res.json({
+      success: true,
+      role: "super-admin",
+      token: createSuperAdminToken(normalizedSuperAdminId)
     });
+  } catch (error) {
+    return next(error);
   }
-
-  const normalizedSuperAdminId = String(superAdminId || "").trim();
-  const lockStatus = await getAccountLockStatus("super-admin", normalizedSuperAdminId);
-  if (lockStatus.locked) {
-    return respondWithLockout(res, lockStatus.remainingMs);
-  }
-
-  if (!(await hasValidSuperAdminCredentials(superAdminId, superAdminPassword))) {
-    await recordFailedLoginAttempt("super-admin", normalizedSuperAdminId);
-    return res.status(401).json({
-      success: false,
-      message: "Invalid super admin credentials."
-    });
-  }
-
-  await clearFailedLoginAttempts("super-admin", normalizedSuperAdminId);
-
-  return res.json({
-    success: true,
-    role: "super-admin",
-    token: createSuperAdminToken(normalizedSuperAdminId)
-  });
 }
 
 async function createAdminAccount(req, res, next) {

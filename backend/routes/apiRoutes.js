@@ -6,6 +6,8 @@ const {
   getUsers,
   modifyAdminAccount,
   modifyAssignedUser,
+  requireAppAuth,
+  requireSuperAdmin,
   superAdminLogin,
   userLogin
 } = require("../controllers/authController");
@@ -30,6 +32,20 @@ const { authRateLimit, sessionRateLimit } = require("../middleware/rateLimiter")
 
 const router = express.Router();
 
+function superAdminOnly(req, res, next) {
+  if (!requireSuperAdmin(req, res)) {
+    return;
+  }
+  next();
+}
+
+function adminOnly(req, res, next) {
+  if (!requireAppAuth(req, res, ["admin"])) {
+    return;
+  }
+  next();
+}
+
 // Apply session rate limit to all API routes
 router.use(sessionRateLimit);
 
@@ -39,13 +55,13 @@ router.post("/auth/user-login", authRateLimit, userLogin);
 router.post("/auth/super-admin-login", authRateLimit, superAdminLogin);
 
 // Admin Routes
-router.get("/admins", getAdminAccounts);
-router.post("/admins", authRateLimit, createAdminAccount);
-router.patch("/admins/:adminId", authRateLimit, modifyAdminAccount);
+router.get("/admins", superAdminOnly, getAdminAccounts);
+router.post("/admins", authRateLimit, superAdminOnly, createAdminAccount);
+router.patch("/admins/:adminId", authRateLimit, superAdminOnly, modifyAdminAccount);
 
 // User Routes
-router.get("/users", getUsers);
-router.patch("/users/:userId", authRateLimit, modifyAssignedUser);
+router.get("/users", adminOnly, getUsers);
+router.patch("/users/:userId", authRateLimit, adminOnly, modifyAssignedUser);
 
 // Data Routes
 router.get("/data/summary", summaryHandler);
