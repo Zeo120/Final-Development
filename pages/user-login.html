@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paradigm | User Portal</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+
+<body>
+  <div class="auth-shell">
+    <div class="auth-container">
+      <section class="auth-info">
+        <div class="auth-brand">
+          <div class="auth-brand-copy">
+            <span>Paradigm</span>
+            <strong>User Portal</strong>
+          </div>
+        </div>
+        <h1>Enter a cleaner workspace for active client work.</h1>
+        <p class="auth-intro">The portal now follows the same monochrome system as the rest of the product.</p>
+
+        <div class="auth-features">
+          <div class="auth-feature-item">
+            <h3>Focused Workflow</h3>
+            <p>See assigned projects, pending tasks, and firm updates without excess decoration.</p>
+          </div>
+          <div class="auth-feature-item">
+            <h3>Consistent Identity</h3>
+            <p>The logo, tab icon, and page styling now align across the full product surface.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="auth-form-panel">
+        <div class="glass-card auth-card">
+          <a class="auth-back" href="/">&larr; Back to Home</a>
+
+          <div class="auth-header">
+            <h2>Sign In</h2>
+            <p>Enter your portal credentials</p>
+          </div>
+
+          <form data-auth-form="user">
+            <div class="form-group">
+              <label for="user-id">User ID</label>
+              <input id="user-id" name="userId" type="text" class="form-control" placeholder="Enter your ID" required>
+            </div>
+
+            <div class="form-group">
+              <label for="user-password">Password</label>
+              <input id="user-password" name="password" type="password" class="form-control" placeholder="********"
+                required>
+            </div>
+
+            <button class="btn btn-primary auth-submit" type="submit">Access Portal</button>
+            <div class="auth-status" data-auth-status></div>
+          </form>
+        </div>
+      </section>
+    </div>
+  </div>
+  <script src="../assets/js/password-toggle.js" defer></script>
+  <script src="../assets/js/auth.js" defer></script>
+</body>
+
+</html>

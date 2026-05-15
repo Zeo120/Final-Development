@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paradigm | User Portal</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="nav">
+      <div class="brand">
+        <span>User Portal</span>
+      </div>
+      <div class="nav-actions">
+        <a href="/" class="btn btn-secondary">Home</a>
+        <button class="btn btn-primary" data-logout>Sign Out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="dashboard-hero">
+        <p class="feature-index">Personal Workspace</p>
+        <h1 id="dashboard-title-dynamic">Welcome Back</h1>
+        <p class="dashboard-hero-copy">Access your professional records, track filing progress, and coordinate with your CA firm through a secure environment.</p>
+      </section>
+
+      <div class="features-grid">
+        <article class="glass-card" style="border-left: 4px solid var(--accent);">
+          <span class="feature-index">PROFILE</span>
+          <h2 data-user-id>Portal User</h2>
+          <p style="margin-top: 1rem; font-size: 0.875rem;">Your session is secured with end-to-end audit tracking.</p>
+        </article>
+
+        <article class="glass-card">
+          <span class="feature-index">WORKFLOW PROGRESS</span>
+          <h2>Tax & Compliance</h2>
+          <div class="metric-stack">
+            <div class="metric glass" style="padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+              <span style="font-size: 0.75rem;">RETURN STATUS</span>
+              <strong style="font-size: 1.25rem;">In Review</strong>
+            </div>
+            <div class="metric glass" style="padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
+              <span style="font-size: 0.75rem;">DOCUMENT FILING</span>
+              <strong style="font-size: 1.25rem;">Active</strong>
+            </div>
+          </div>
+        </article>
+
+        <article class="glass-card">
+          <span class="feature-index">SECURITY HUB</span>
+          <h2>Account Details</h2>
+          <div class="detail-stack">
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Access Role</span>
+              <strong data-user-role style="display: block; font-size: 1.1rem;">user</strong>
+            </div>
+            <div>
+              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Authorized ID</span>
+              <strong data-user-id-secondary style="display: block; font-size: 1.1rem;">user</strong>
+            </div>
+          </div>
+        </article>
+      </div>
+
+      <div id="page-tabs-container" style="display: flex; gap: 0.5rem; margin-top: 2rem;">
+        <!-- Page tabs will be injected here -->
+      </div>
+
+      <div id="dashboard-widgets-container" class="features-grid" style="margin-top: 2rem;">
+        <!-- Modular Widgets will be injected here -->
+        <article class="glass-card" style="grid-column: span 3; text-align: center; padding: 4rem;">
+          <p style="opacity: 0.5;">Synchronizing your workspace...</p>
+        </article>
+      </div>
+      <!-- Modals for Creation -->
+      <div id="modal-create-page" class="auth-shell" style="display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center;">
+        <div class="glass-card" style="width: 400px;">
+          <h3>Create New Workspace Page</h3>
+          <form onsubmit="addPage(event)" style="margin-top: 1.5rem;">
+            <div class="form-group">
+              <label>Page Title</label>
+              <input name="title" type="text" class="form-control" placeholder="e.g. My Workspace" required>
+            </div>
+            <div class="modal-actions">
+              <button type="submit" class="btn btn-primary" style="flex: 1;">Create</button>
+              <button type="button" class="btn btn-secondary" onclick="this.closest('.auth-shell').style.display='none'">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </main>
+  </div>
+  <script src="../assets/js/dashboard.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paradigm | System Console</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+  <style>
+    .admin-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+    .admin-list-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    .admin-list-table th, .admin-list-table td {
+      padding: 1rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    .admin-list-table th {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    @media (max-width: 720px) {
+      .admin-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="nav">
+      <div class="brand">
+        <span>System Console</span>
+      </div>
+      <div class="nav-actions">
+        <a href="/admin-login" class="btn btn-secondary">Admin Login</a>
+        <button class="btn btn-primary" data-super-admin-logout>Secure Logout</button>
+      </div>
+    </header>
+
+    <main style="padding-bottom: 4rem;">
+      <section style="margin: 2rem 0;">
+        <h1>Infrastructure Management</h1>
+        <p>Orchestrate firm-level administrator accounts and access permissions.</p>
+      </section>
+
+      <div class="admin-grid">
+        <article class="glass-card">
+          <h3>Provision New Admin</h3>
+          <p style="margin-bottom: 1.5rem; font-size: 0.875rem;">Create a fresh administration account with base permissions.</p>
+          <form class="dashboard-form" data-super-admin-create-form>
+            <div class="form-group">
+              <label for="managed-admin-id">Admin ID</label>
+              <input id="managed-admin-id" name="adminId" type="text" class="form-control" placeholder="admin_user" required>
+            </div>
+            <div class="form-group">
+              <label for="managed-admin-password">Initial Password</label>
+              <input id="managed-admin-password" name="password" type="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button class="btn btn-primary" style="width: 100%;" type="submit">Create Account</button>
+            <div class="auth-status" data-super-admin-create-status></div>
+          </form>
+        </article>
+
+        <article class="glass-card">
+          <h3>Reset Account Access</h3>
+          <p style="margin-bottom: 1.5rem; font-size: 0.875rem;">Update credentials for an existing firm administrator.</p>
+          <form class="dashboard-form" data-super-admin-update-form>
+            <div class="form-group">
+              <label for="existing-admin-id">Target Admin ID</label>
+              <input id="existing-admin-id" name="adminId" type="text" class="form-control" placeholder="existing_admin" required>
+            </div>
+            <div class="form-group">
+              <label for="updated-admin-password">New Password</label>
+              <input id="updated-admin-password" name="password" type="password" class="form-control" placeholder="••••••••" required>
+            </div>
+            <button class="btn btn-secondary" style="width: 100%;" type="submit">Update Credentials</button>
+            <div class="auth-status" data-super-admin-update-status></div>
+          </form>
+        </article>
+      </div>
+
+      <section class="glass-card" style="margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+          <div>
+            <h3>Active Administrators</h3>
+            <p style="font-size: 0.875rem;">List of all authorized CA firm admin accounts.</p>
+          </div>
+          <button class="btn btn-secondary" data-refresh-admins>Refresh Registry</button>
+        </div>
+        
+        <div style="overflow-x: auto;">
+          <table class="admin-list-table">
+            <thead>
+              <tr>
+                <th>Administrator ID</th>
+                <th>Creation Date</th>
+              </tr>
+            </thead>
+            <tbody data-admin-list>
+              <tr>
+                <td colspan="2">Synchronizing with registry...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="auth-status" data-admin-list-status></div>
+      </section>
+    </main>
+  </div>
+  <script src="../assets/js/password-toggle.js" defer></script>
+  <script src="../assets/js/super-admin.js" defer></script>
+</body>
+</html>

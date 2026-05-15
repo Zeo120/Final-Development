@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Paradigm Simple Calculator</title>
+    <link rel="stylesheet" href="../assets/css/calculator.css" />
+  </head>
+  <body>
+    <header class="calc-header">
+      <a class="brand-link" href="../index.html">← Back to Paradigm</a>
+    </header>
+    <main class="calculator-shell">
+      <header class="hero">
+        <p class="eyebrow">Quick numbers</p>
+        <h1>Simple Financial Calculator</h1>
+        <p>
+          Enter revenue, liabilities, and cash flows to see instant insights. Values update as you type so
+          you can test scenarios before sharing statements.
+        </p>
+      </header>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Income Statement</h2>
+          <p>Understand how revenue flows through to net profit.</p>
+        </div>
+        <div class="input-grid">
+          <label>
+            Revenue
+            <input type="number" id="revenue" placeholder="0" />
+          </label>
+          <label>
+            Cost of Goods Sold
+            <input type="number" id="cogs" placeholder="0" />
+          </label>
+          <label>
+            Operating Expenses
+            <input type="number" id="operatingExpenses" placeholder="0" />
+          </label>
+          <label>
+            Other Income / (Expense)
+            <input type="number" id="otherIncome" placeholder="0" />
+          </label>
+          <label>
+            Tax Rate (%)
+            <input type="number" id="taxRate" placeholder="25" />
+          </label>
+        </div>
+        <div class="result-grid">
+          <article>
+            <p>Gross Profit</p>
+            <strong id="grossProfit">0</strong>
+          </article>
+          <article>
+            <p>Operating Profit</p>
+            <strong id="operatingProfit">0</strong>
+          </article>
+          <article>
+            <p>Pretax Profit</p>
+            <strong id="pretaxProfit">0</strong>
+          </article>
+          <article>
+            <p>Net Profit</p>
+            <strong id="netProfit">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Balance Overview</h2>
+          <p>Check solvency and working capital in one glance.</p>
+        </div>
+        <div class="input-grid">
+          <label>
+            Total Assets
+            <input type="number" id="totalAssets" placeholder="0" />
+          </label>
+          <label>
+            Total Liabilities
+            <input type="number" id="totalLiabilities" placeholder="0" />
+          </label>
+          <label>
+            Current Assets
+            <input type="number" id="currentAssets" placeholder="0" />
+          </label>
+          <label>
+            Current Liabilities
+            <input type="number" id="currentLiabilities" placeholder="0" />
+          </label>
+          <label>
+            Total Equity
+            <input type="number" id="totalEquity" placeholder="0" />
+          </label>
+        </div>
+        <div class="result-grid">
+          <article>
+            <p>Working Capital</p>
+            <strong id="workingCapital">0</strong>
+          </article>
+          <article>
+            <p>Debt-to-Equity</p>
+            <strong id="debtToEquity">0</strong>
+          </article>
+          <article>
+            <p>Current Ratio</p>
+            <strong id="currentRatio">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Cash Flow Snapshot</h2>
+          <p>See how cash moves through operating, investing, and financing activities.</p>
+        </div>
+        <div class="input-grid">
+          <label>
+            Operating Cash Flow
+            <input type="number" id="operatingCash" placeholder="0" />
+          </label>
+          <label>
+            Investing Cash Flow
+            <input type="number" id="investingCash" placeholder="0" />
+          </label>
+          <label>
+            Financing Cash Flow
+            <input type="number" id="financingCash" placeholder="0" />
+          </label>
+        </div>
+        <div class="result-grid single">
+          <article>
+            <p>Net Cash Flow</p>
+            <strong id="netCashFlow">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-heading">
+          <h2>Ledger Check</h2>
+          <p>Use this to verify totals before sharing statements.</p>
+        </div>
+        <div class="input-grid two-column">
+          <label>
+            Debits Total
+            <input type="number" id="debits" placeholder="0" />
+          </label>
+          <label>
+            Credits Total
+            <input type="number" id="credits" placeholder="0" />
+          </label>
+        </div>
+        <div class="result-grid single">
+          <article>
+            <p>Difference</p>
+            <strong id="ledgerDiff">0</strong>
+          </article>
+        </div>
+      </section>
+
+      <div class="actions">
+        <button type="button" id="reset">Reset all inputs</button>
+      </div>
+    </main>
+
+    <script src="../assets/js/calculator.js"></script>
+  </body>
+</html>

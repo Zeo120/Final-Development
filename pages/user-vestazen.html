@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paradigm | Vestazen</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/vestazen.css">
+</head>
+<body>
+  <main class="vestazen-shell">
+    <section class="vestazen-hero">
+      <p class="vestazen-tag">LVSS // Paradigm</p>
+      <h1>Vestazen</h1>
+      <p>
+        A dedicated workspace for LVSS’s user Vestazen—shaped in stark monochrome, engineered to feel like a
+        brutal glass chamber with precision-controlled data accents.
+      </p>
+      <div class="vestazen-actions">
+        <a href="#insights" class="primary">Access the Vault</a>
+        <a href="#insights" class="primary" data-action="open-compliance">View Compliance Pulse</a>
+      </div>
+    </section>
+
+    <section class="vestazen-grid" id="insights">
+      <article class="vestazen-panel">
+        <h3>Projection</h3>
+        <strong>LVSS · Vestazen</strong>
+        <p>High-frequency tracking across filings, audit notes, and CA-led advisories kept razor sharp.</p>
+      </article>
+      <article class="vestazen-panel">
+        <h3>Security</h3>
+        <strong>Glass-Mantle</strong>
+        <p>All sessions are mirrored through the Brutal Glass Morphism guard to prevent visual leakage.</p>
+      </article>
+      <article class="vestazen-panel">
+        <h3>Momentum</h3>
+        <strong>On Track</strong>
+        <p>Zero incidents across the LVSS estate—Vestazen’s lane remains locked and in sync with the CA crew.</p>
+      </article>
+    </section>
+
+    <div class="vestazen-stats">
+      <div class="vestazen-stat">
+        <span>FILING STATUS</span>
+        <strong>Sanction-Ready</strong>
+        <p>Reviewed by LVSS analysts and awaiting final submission.</p>
+      </div>
+      <div class="vestazen-stat">
+        <span>RESPONSE</span>
+        <strong>Instant</strong>
+        <p>Control room alerts echo in under 120ms, giving Vestazen live confidence.</p>
+      </div>
+      <div class="vestazen-stat">
+        <span>TASK SYNC</span>
+        <strong>99.3%</strong>
+        <p>Everything assigned by LVSS is reflected across the vault without drift.</p>
+      </div>
+    </div>
+
+    <p class="vestazen-footer">Session anchored by Paradigm + LVSS • all-black, all-white, all secure.</p>
+    <div class="compliance-overlay" id="complianceOverlay" aria-hidden="true"></div>
+    <aside class="compliance-panel" id="compliancePanel" aria-live="polite" aria-hidden="true">
+      <header class="compliance-panel__header">
+        <div>
+          <p class="compliance-panel__label">GST Compliance</p>
+          <h3>Need quick filings?</h3>
+        </div>
+        <button class="ghost-button" id="closeCompliancePulse" type="button" aria-label="Close compliance pulse panel">&times;</button>
+      </header>
+      <div class="compliance-panel__body">
+        <div class="compliance-panel__summary-grid">
+          <div>
+            <span>Selected Fiscal Year</span>
+            <strong id="complianceSelectedYearLabel">—</strong>
+          </div>
+          <div>
+            <span>Total ITC</span>
+            <strong id="complianceTotalItc">₹0</strong>
+          </div>
+        </div>
+        <div class="compliance-gst-returns">
+          <span>GST Compliance</span>
+          <div class="compliance-gst-pill">GSTR-1</div>
+          <div class="compliance-gst-pill">GSTR-3B</div>
+        </div>
+        <div class="compliance-panel__section">
+          <div class="compliance-section-header">
+            <h4>Fiscal Years</h4>
+            <span id="complianceLoadingMessage" class="compliance-loading">Loading financial years…</span>
+          </div>
+          <div id="complianceFiscalYearsList" class="compliance-year-list">
+            <p class="compliance-placeholder">Open the panel to load client fiscal years.</p>
+          </div>
+        </div>
+        <div class="compliance-panel__section">
+          <div class="compliance-section-header">
+            <h4>Monthly Health</h4>
+          </div>
+          <div id="complianceMonthGrid" class="compliance-month-grid">
+            <p class="compliance-placeholder">Select a fiscal year to view months.</p>
+          </div>
+        </div>
+        <div class="compliance-panel__section">
+          <div class="compliance-section-header">
+            <h4>Invoice Ledger</h4>
+          </div>
+          <p id="complianceInvoiceMessage" class="compliance-invoice-message">Select a fiscal year to populate invoices.</p>
+          <div class="compliance-invoice-table-wrapper">
+            <table class="compliance-invoice-table">
+              <thead>
+                <tr>
+                  <th>Month</th>
+                  <th>Invoice</th>
+                  <th>Invoice Value</th>
+                  <th>Taxable Value</th>
+                  <th>CGST</th>
+                  <th>SGST</th>
+                  <th>IGST</th>
+                </tr>
+              </thead>
+              <tbody id="complianceInvoiceBody">
+                <tr>
+                  <td colspan="7">No fiscal year selected.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div id="complianceErrorMessage" class="compliance-panel__error" role="alert" aria-live="polite"></div>
+      </div>
+    </aside>
+  </main>
+  <script>
+    (function () {
+        const complianceState = {
+          years: [],
+          selectedYearId: null,
+          loading: false,
+          error: ""
+        };
+
+      function getSessionToken() {
+        try {
+          const session = JSON.parse(window.sessionStorage.getItem("paradigmSession") || "null");
+          return session && session.token ? String(session.token) : "";
+        } catch {
+          return "";
+        }
+      }
+
+      async function fetchComplianceData(url, options = {}) {
+        const token = getSessionToken();
+        const headers = {
+          ...(options.headers || {})
+        };
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+        const response = await fetch(url, { ...options, headers });
+        const data = await response.json().catch(() => ({}));
+        if (response.status === 401) {
+          window.sessionStorage.removeItem("paradigmSession");
+          window.location.replace("/user-login");
+          throw new Error("Session expired.");
+        }
+        if (!response.ok) {
+          const err = new Error(data.message || "Request failed.");
+          err.status = response.status;
+          throw err;
+        }
+        return data;
+      }
+
+      function formatCurrency(value) {
+        const amount = Number(value || 0);
+        return `₹${amount.toLocaleString("en-IN")}`;
+      }
+
+      function toggleLoading(show) {
+        const loader = document.getElementById("complianceLoadingMessage");
+        if (loader) {
+          loader.style.display = show ? "inline-block" : "none";
+        }
+      }
+
+      function renderError() {
+        const node = document.getElementById("complianceErrorMessage");
+        if (!node) return;
+        if (complianceState.error) {
+          node.textContent = complianceState.error;
+          node.style.display = "block";
+        } else {
+          node.textContent = "";
+          node.style.display = "none";
+        }
+      }
+
+      function renderFiscalYearsList() {
+        const container = document.getElementById("complianceFiscalYearsList");
+        if (!container) return;
+        if (complianceState.loading) {
+          container.innerHTML = `<p class="compliance-placeholder">Loading financial years…</p>`;
+          return;
+        }
+        if (!complianceState.years.length) {
+          container.innerHTML = `<p class="compliance-placeholder">No fiscal years defined yet.</p>`;
+          return;
+        }
+        container.innerHTML = complianceState.years
+          .map((year) => `
+            <button type="button" class="compliance-year-pill ${complianceState.selectedYearId === year.FiscalYearID ? "is-active" : ""}" data-year-id="${year.FiscalYearID}">
+              ${year.Title}
+            </button>
+          `)
+          .join("");
+        container.querySelectorAll(".compliance-year-pill").forEach((button) => {
+          button.addEventListener("click", () => selectFiscalYear(Number(button.dataset.yearId)));
+        });
+      }
+
+        function renderMonthGrid(months) {
+          const container = document.getElementById("complianceMonthGrid");
+          if (!container) return;
+          if (!months?.length) {
+            container.innerHTML = `<p class="compliance-placeholder">Select a fiscal year to view months.</p>`;
+            return;
+          }
+          container.innerHTML = months
+            .map((month) => `
+              <article class="compliance-month-card ${month.Status === "Filed" ? "is-filed" : ""}">
+                <h5>${month.MonthName}</h5>
+                <span class="status-pill">${month.Status || "Not Filed"}</span>
+                <p class="itc-value">Total ITC: ${formatCurrency(month.TotalITC)}</p>
+              </article>
+            `)
+            .join("");
+        }
+
+        function renderInvoices(invoices) {
+          const tableBody = document.getElementById("complianceInvoiceBody");
+          const messageNode = document.getElementById("complianceInvoiceMessage");
+          if (!tableBody || !messageNode) return;
+          if (!invoices?.length) {
+            messageNode.textContent = "No invoices recorded yet.";
+            tableBody.innerHTML = `<tr><td colspan="7">No invoices captured for this year.</td></tr>`;
+            return;
+          }
+          messageNode.textContent = `${invoices.length} invoice${invoices.length === 1 ? "" : "s"} recorded.`;
+          tableBody.innerHTML = invoices
+            .map((invoice) => `
+              <tr>
+                <td>${invoice.MonthName || "—"}</td>
+                <td>${invoice.InvoiceNumber || "—"}</td>
+                <td>${formatCurrency(invoice.InvoiceValue)}</td>
+                <td>${formatCurrency(invoice.TaxableValue)}</td>
+                <td>${formatCurrency(invoice.CGST)}</td>
+                <td>${formatCurrency(invoice.SGST)}</td>
+                <td>${formatCurrency(invoice.IGST)}</td>
+              </tr>
+            `)
+            .join("");
+        }
+
+      function updateTotals(months = [], year = null) {
+        const yearLabel = document.getElementById("complianceSelectedYearLabel");
+        const totalItcNode = document.getElementById("complianceTotalItc");
+        if (yearLabel) {
+          yearLabel.textContent = year?.Title || "—";
+        }
+        if (totalItcNode) {
+          const total = (months || []).reduce((sum, month) => sum + (Number(month.TotalITC) || 0), 0);
+          totalItcNode.textContent = formatCurrency(total);
+        }
+      }
+
+        async function loadFiscalYearDetails(yearId) {
+          if (!yearId) return;
+          complianceState.error = "";
+          try {
+            const response = await fetchComplianceData(`/api/compliance/fiscal-years/${yearId}`);
+            if (response.success) {
+              const months = Array.isArray(response.months) ? response.months : [];
+              const invoices = Array.isArray(response.invoices) ? response.invoices : [];
+              renderMonthGrid(months);
+              renderInvoices(invoices);
+              updateTotals(months, response.year || null);
+            }
+          } catch (err) {
+            complianceState.error = err.status === 400 || err.status === 404 ? "No compliance data available yet." : err.message || "Unable to load fiscal year details.";
+            renderError();
+          }
+        }
+
+        async function refreshFiscalYears() {
+          complianceState.loading = true;
+          complianceState.error = "";
+          complianceState.years = [];
+          complianceState.selectedYearId = null;
+          renderFiscalYearsList();
+          renderMonthGrid([]);
+          renderInvoices([]);
+          renderError();
+          toggleLoading(true);
+          try {
+            const response = await fetchComplianceData("/api/compliance/fiscal-years");
+            complianceState.years = Array.isArray(response.data) ? response.data : [];
+            complianceState.selectedYearId = complianceState.years[0]?.FiscalYearID || null;
+            renderFiscalYearsList();
+            if (complianceState.selectedYearId) {
+              await loadFiscalYearDetails(complianceState.selectedYearId);
+            } else {
+              updateTotals([], null);
+            }
+          } catch (err) {
+            if (err.status === 400 || err.status === 404) {
+              complianceState.error = "No compliance data available yet.";
+            } else {
+              complianceState.error = err.message || "Unable to load fiscal years.";
+            }
+            renderError();
+          } finally {
+            complianceState.loading = false;
+            toggleLoading(false);
+          }
+        }
+
+        async function selectFiscalYear(yearId) {
+          if (!yearId) return;
+          complianceState.selectedYearId = yearId;
+          renderFiscalYearsList();
+          await loadFiscalYearDetails(yearId);
+        }
+
+      const trigger = document.querySelector("[data-action=\"open-compliance\"]");
+      const panel = document.getElementById("compliancePanel");
+      const overlay = document.getElementById("complianceOverlay");
+      const close = document.getElementById("closeCompliancePulse");
+
+      if (!panel || !overlay || !trigger) {
+        return;
+      }
+
+      const setVisibility = (visible) => {
+        panel.classList.toggle("open", visible);
+        overlay.classList.toggle("visible", visible);
+        panel.setAttribute("aria-hidden", String(!visible));
+        overlay.setAttribute("aria-hidden", String(!visible));
+      };
+
+      const showPanel = async (event) => {
+        event?.preventDefault();
+        setVisibility(true);
+        await refreshFiscalYears();
+      };
+
+      const hidePanel = () => setVisibility(false);
+
+      trigger.addEventListener("click", showPanel);
+      overlay.addEventListener("click", hidePanel);
+      close.addEventListener("click", hidePanel);
+    })();
+  </script>
+</body>
+</html>
