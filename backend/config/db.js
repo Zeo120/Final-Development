@@ -33,6 +33,11 @@ function getDbConfig() {
     database,
     connectionTimeout: Number(process.env.DB_CONNECTION_TIMEOUT || 15000),
     requestTimeout: Number(process.env.DB_REQUEST_TIMEOUT || 15000),
+    pool: {
+      max: Number(process.env.DB_POOL_MAX || 10),
+      min: Number(process.env.DB_POOL_MIN || 0),
+      idleTimeoutMillis: 30000
+    },
     options: {
       encrypt: parseBoolean(process.env.DB_ENCRYPT, false),
       trustedConnection: true,
@@ -54,8 +59,21 @@ function getPool() {
   return poolPromise;
 }
 
+async function closePool() {
+  if (poolPromise) {
+    try {
+      const pool = await poolPromise;
+      await pool.close();
+      poolPromise = null;
+    } catch (err) {
+      console.error("Failed to close DB pool:", err);
+    }
+  }
+}
+
 module.exports = {
   sql,
   getDbConfig,
-  getPool
+  getPool,
+  closePool
 };

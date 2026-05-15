@@ -1,0 +1,23 @@
+User-agent: *
+Allow: /$
+Allow: /assets/css/
+Allow: /assets/images/
+Allow: /sitemap.xml
+Allow: /llms.txt
+
+# Block all authenticated/dashboard pages
+Disallow: /admin-login
+Disallow: /user-login
+Disallow: /super-admin-login
+Disallow: /admin-dashboard
+Disallow: /user-dashboard
+Disallow: /user-vestazen
+Disallow: /super-admin-dashboard
+
+# Block all API routes - these are not for indexing
+Disallow: /api/
+
+# Block all raw HTML page files served from /pages/
+Disallow: /pages/
+
+Sitemap: http://localhost:3000/sitemap.xml

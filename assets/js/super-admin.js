@@ -45,6 +45,8 @@ function bindSuperAdminLogin() {
     return;
   }
 
+  clearSuperAdminToken();
+
   const statusNode = form.querySelector("[data-super-admin-login-status]");
   const submitButton = form.querySelector("button[type='submit']");
 

@@ -1,5 +1,5 @@
 const { getPool, sql } = require("../config/db");
-const { createPasswordHash } = require("../utils/security");
+const { createPasswordHash } = require("../utils/hashpasswords");
 
 function escapeIdentifier(identifier) {
   return `[${String(identifier).replace(/]/g, "]]")}]`;
@@ -22,7 +22,7 @@ async function migrateTable({ tableName, idColumn, passwordColumn }) {
   for (const row of result.recordset) {
     const currentPassword = String(row.password || "");
 
-    if (currentPassword.startsWith("scrypt$")) {
+    if (currentPassword.startsWith("$argon2")) {
       continue;
     }
 

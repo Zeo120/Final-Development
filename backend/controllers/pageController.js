@@ -1,6 +1,24 @@
 const { getUserPages, getPageWidgets, createPage, addWidget, deleteWidget } = require("../models/pageModel");
 const { requireAppAuth } = require("./authController");
 
+function parseBoolean(value) {
+  if (value === true || value === false) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (normalized === "true" || normalized === "1") return true;
+    if (normalized === "false" || normalized === "0" || normalized === "") return false;
+  }
+
+  if (typeof value === "number") {
+    return value !== 0;
+  }
+
+  return Boolean(value);
+}
+
 async function listPages(req, res, next) {
   try {
     const auth = requireAppAuth(req, res, ["admin", "user"]);
@@ -44,7 +62,7 @@ async function createNewPage(req, res, next) {
 
     const title = String(req.body.title || "").trim();
     const slug = String(req.body.slug || "").trim();
-    const isDefault = Boolean(req.body.isDefault);
+    const isDefault = parseBoolean(req.body.isDefault);
 
     if (!title || !slug) {
       return res.status(400).json({ success: false, message: "Title and slug are required." });

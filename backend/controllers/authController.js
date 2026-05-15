@@ -1,3 +1,17 @@
+/**
+ * authController.js
+ * 
+ * Handles all Authentication and Authorization logic.
+ * 
+ * ============================================================================
+ * INTERN NOTES:
+ * - We use JSON Web Tokens (JWT) for stateless sessions. Tokens live for 30 mins.
+ * - Login endpoints explicitly track failed attempts and lock out IPs/Users 
+ *   using `cacheAdapter.js` to prevent brute-force attacks.
+ * - The `requireAppAuth` and `requireSuperAdmin` functions act as pseudo-middleware
+ *   that strictly verify JWTs before allowing access to secure data endpoints.
+ * ============================================================================
+ */
 const {
   createAdmin,
   listAdmins,
@@ -11,15 +25,16 @@ const {
   createSignedToken,
   isStrongPassword,
   timingSafeEqualString,
-  verifyPassword,
   verifySignedToken
 } = require("../utils/security");
+const { verifyPassword } = require("../utils/hashpasswords");
 
-const APP_TOKEN_TTL_MS = 1000 * 60 * 60 * 8;
-const SUPER_ADMIN_TOKEN_TTL_MS = 1000 * 60 * 60 * 8;
+const { get, set, remove } = require("../utils/cacheAdapter");
+
+const APP_TOKEN_TTL_MS = 1000 * 60 * 30; // 30 minutes
+const SUPER_ADMIN_TOKEN_TTL_MS = 1000 * 60 * 60 * 1; // 1 hour
 const MAX_LOGIN_ATTEMPTS = Number(process.env.MAX_LOGIN_ATTEMPTS || 5);
 const LOGIN_LOCKOUT_DURATION_MS = Number(process.env.LOGIN_LOCKOUT_DURATION_MS || 15 * 60 * 1000);
-const loginFailures = new Map();
 
 function normalizeLoginIdentifier(value) {
   return String(value || "").trim();
@@ -29,9 +44,9 @@ function getLoginKey(role, identifier) {
   return `${role}:${normalizeLoginIdentifier(identifier)}`;
 }
 
-function getAccountLockStatus(role, identifier) {
-  const key = getLoginKey(role, identifier);
-  const entry = loginFailures.get(key);
+async function getAccountLockStatus(role, identifier) {
+  const key = `lockout:${getLoginKey(role, identifier)}`;
+  const entry = await get(key);
   if (!entry || !entry.lockUntil) {
     return { locked: false, remainingMs: 0 };
   }
@@ -41,14 +56,14 @@ function getAccountLockStatus(role, identifier) {
     return { locked: true, remainingMs: entry.lockUntil - now };
   }
 
-  loginFailures.delete(key);
+  await remove(key);
   return { locked: false, remainingMs: 0 };
 }
 
-function recordFailedLoginAttempt(role, identifier) {
-  const key = getLoginKey(role, identifier);
+async function recordFailedLoginAttempt(role, identifier) {
+  const key = `lockout:${getLoginKey(role, identifier)}`;
   const now = Date.now();
-  const entry = loginFailures.get(key) || { count: 0, lockUntil: 0 };
+  const entry = await get(key) || { count: 0, lockUntil: 0 };
 
   if (entry.lockUntil && now >= entry.lockUntil) {
     entry.count = 0;
@@ -61,12 +76,12 @@ function recordFailedLoginAttempt(role, identifier) {
     entry.lockUntil = now + LOGIN_LOCKOUT_DURATION_MS;
   }
 
-  loginFailures.set(key, entry);
+  await set(key, entry, LOGIN_LOCKOUT_DURATION_MS * 2);
   return entry;
 }
 
-function clearFailedLoginAttempts(role, identifier) {
-  loginFailures.delete(getLoginKey(role, identifier));
+async function clearFailedLoginAttempts(role, identifier) {
+  await remove(`lockout:${getLoginKey(role, identifier)}`);
 }
 
 function respondWithLockout(res, remainingMs) {
@@ -227,21 +242,21 @@ async function adminLogin(req, res, next) {
 
     const normalizedId = String(adminId || "").trim();
     const normalizedPass = String(password || "");
-    const lockStatus = getAccountLockStatus("admin", normalizedId);
+    const lockStatus = await getAccountLockStatus("admin", normalizedId);
     if (lockStatus.locked) {
       return respondWithLockout(res, lockStatus.remainingMs);
     }
     const user = await validateAdminCredentials(normalizedId, normalizedPass);
 
     if (!user) {
-      recordFailedLoginAttempt("admin", normalizedId);
+      await recordFailedLoginAttempt("admin", normalizedId);
       return res.status(401).json({
         success: false,
         message: "Invalid admin credentials."
       });
     }
 
-    clearFailedLoginAttempts("admin", normalizedId);
+    await clearFailedLoginAttempts("admin", normalizedId);
 
     return res.json({
       success: true,
@@ -274,21 +289,21 @@ async function userLogin(req, res, next) {
 
     const normalizedUserId = String(userId || "").trim();
     const normalizedPassword = String(password || "");
-    const lockStatus = getAccountLockStatus("user", normalizedUserId);
+    const lockStatus = await getAccountLockStatus("user", normalizedUserId);
     if (lockStatus.locked) {
       return respondWithLockout(res, lockStatus.remainingMs);
     }
     const user = await validateUserCredentials(normalizedUserId, normalizedPassword);
 
     if (!user) {
-      recordFailedLoginAttempt("user", normalizedUserId);
+      await recordFailedLoginAttempt("user", normalizedUserId);
       return res.status(401).json({
         success: false,
         message: "Invalid user credentials."
       });
     }
 
-    clearFailedLoginAttempts("user", normalizedUserId);
+    await clearFailedLoginAttempts("user", normalizedUserId);
 
     return res.json({
       success: true,
@@ -319,20 +334,20 @@ async function superAdminLogin(req, res) {
   }
 
   const normalizedSuperAdminId = String(superAdminId || "").trim();
-  const lockStatus = getAccountLockStatus("super-admin", normalizedSuperAdminId);
+  const lockStatus = await getAccountLockStatus("super-admin", normalizedSuperAdminId);
   if (lockStatus.locked) {
     return respondWithLockout(res, lockStatus.remainingMs);
   }
 
   if (!(await hasValidSuperAdminCredentials(superAdminId, superAdminPassword))) {
-    recordFailedLoginAttempt("super-admin", normalizedSuperAdminId);
+    await recordFailedLoginAttempt("super-admin", normalizedSuperAdminId);
     return res.status(401).json({
       success: false,
       message: "Invalid super admin credentials."
     });
   }
 
-  clearFailedLoginAttempts("super-admin", normalizedSuperAdminId);
+  await clearFailedLoginAttempts("super-admin", normalizedSuperAdminId);
 
   return res.json({
     success: true,

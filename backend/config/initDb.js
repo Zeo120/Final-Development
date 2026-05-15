@@ -1,5 +1,5 @@
 const { sql, getPool } = require("./db");
-const { createPasswordHash } = require("../utils/security");
+const { createPasswordHash } = require("../utils/hashpasswords");
 
 function escapeIdentifier(identifier) {
   return `[${String(identifier).replace(/]/g, "]]")}]`;
@@ -8,7 +8,7 @@ function escapeIdentifier(identifier) {
 async function ensureTable(tableName, columns) {
   const pool = await getPool();
   const safeTable = escapeIdentifier(tableName);
-  
+
   const columnDefs = columns.map(col => {
     let def = `${escapeIdentifier(col.name)} ${col.type}`;
     if (col.primaryKey) def += " PRIMARY KEY";
@@ -66,20 +66,24 @@ async function seedUserIfTableEmpty({ tableName, idColumn, passwordColumn, idVal
 async function initializeDatabase() {
   const adminTable = process.env.ADMIN_TABLE || "Admins";
   const userTable = process.env.USER_TABLE || "Users";
+  const adminIdColumn = process.env.ADMIN_ID_COLUMN || "AdminID";
+  const adminPasswordColumn = process.env.ADMIN_PASSWORD_COLUMN || "Password";
+  const userIdColumn = process.env.USER_ID_COLUMN || "UserID";
+  const userPasswordColumn = process.env.USER_PASSWORD_COLUMN || "Password";
 
   const pool = await getPool();
 
   // Auth Tables
   await ensureTable(adminTable, [
-    { name: process.env.ADMIN_ID_COLUMN || "AdminID", type: "NVARCHAR(100)", primaryKey: true, notNull: true },
-    { name: process.env.ADMIN_PASSWORD_COLUMN || "Password", type: "NVARCHAR(500)", notNull: true },
+    { name: adminIdColumn, type: "NVARCHAR(100)", primaryKey: true, notNull: true },
+    { name: adminPasswordColumn, type: "NVARCHAR(500)", notNull: true },
     { name: "CreatedAt", type: "DATETIME2", notNull: true, default: "SYSUTCDATETIME()" }
   ]);
 
   await ensureTable(userTable, [
-    { name: process.env.USER_ID_COLUMN || "UserID", type: "NVARCHAR(100)", primaryKey: true, notNull: true },
-    { name: process.env.USER_PASSWORD_COLUMN || "Password", type: "NVARCHAR(500)", notNull: true },
-    { name: "AdminID", type: "NVARCHAR(100)", notNull: false, references: { table: adminTable, column: process.env.ADMIN_ID_COLUMN || "AdminID" } },
+    { name: userIdColumn, type: "NVARCHAR(100)", primaryKey: true, notNull: true },
+    { name: userPasswordColumn, type: "NVARCHAR(500)", notNull: true },
+    { name: adminIdColumn, type: "NVARCHAR(100)", notNull: false, references: { table: adminTable, column: adminIdColumn } },
     { name: "CreatedAt", type: "DATETIME2", notNull: true, default: "SYSUTCDATETIME()" }
   ]);
 
@@ -170,8 +174,8 @@ async function initializeDatabase() {
   // Seeding
   await seedUserIfTableEmpty({
     tableName: adminTable,
-    idColumn: process.env.ADMIN_ID_COLUMN || "AdminID",
-    passwordColumn: process.env.ADMIN_PASSWORD_COLUMN || "Password",
+    idColumn: adminIdColumn,
+    passwordColumn: adminPasswordColumn,
     idValue: process.env.DEFAULT_ADMIN_ID || "admin",
     passwordValue: process.env.DEFAULT_ADMIN_PASSWORD || "admin123"
   });
@@ -179,41 +183,41 @@ async function initializeDatabase() {
   // Ensure default admin password is hashed if needed
   const adminRes = await pool.request()
     .input("aid", sql.NVarChar, process.env.DEFAULT_ADMIN_ID || "admin")
-    .query(`SELECT * FROM ${escapeIdentifier(adminTable)} WHERE [AdminID] = @aid`);
-  if (adminRes.recordset.length > 0 && !adminRes.recordset[0].Password.includes('$')) {
+    .query(`SELECT * FROM ${escapeIdentifier(adminTable)} WHERE ${escapeIdentifier(adminIdColumn)} = @aid`);
+  if (adminRes.recordset.length > 0 && !String(adminRes.recordset[0][adminPasswordColumn] || "").includes("$")) {
     console.log("Upgrading admin password to hash...");
     const adminPassHash = await createPasswordHash(process.env.DEFAULT_ADMIN_PASSWORD || "admin123");
     await pool.request()
       .input("aid", sql.NVarChar, process.env.DEFAULT_ADMIN_ID || "admin")
       .input("pass", sql.NVarChar, adminPassHash)
-      .query(`UPDATE ${escapeIdentifier(adminTable)} SET [Password] = @pass WHERE [AdminID] = @aid`);
+      .query(`UPDATE ${escapeIdentifier(adminTable)} SET ${escapeIdentifier(adminPasswordColumn)} = @pass WHERE ${escapeIdentifier(adminIdColumn)} = @aid`);
   }
 
   // Ensure default user exists (with hash)
   const defaultUserRes = await pool.request()
     .input("userId", sql.NVarChar, process.env.DEFAULT_USER_ID || "user")
-    .query(`SELECT * FROM ${escapeIdentifier(userTable)} WHERE [UserID] = @userId`);
-  
+    .query(`SELECT * FROM ${escapeIdentifier(userTable)} WHERE ${escapeIdentifier(userIdColumn)} = @userId`);
+
   if (defaultUserRes.recordset.length === 0) {
     const userPassHash = await createPasswordHash(process.env.DEFAULT_USER_PASSWORD || "user123");
     await pool.request()
       .input("userId", sql.NVarChar, process.env.DEFAULT_USER_ID || "user")
       .input("password", sql.NVarChar, userPassHash)
       .input("adminId", sql.NVarChar, process.env.DEFAULT_ADMIN_ID || "admin")
-      .query(`INSERT INTO ${escapeIdentifier(userTable)} ([UserID], [Password], [AdminID]) VALUES (@userId, @password, @adminId)`);
-  } else if (!defaultUserRes.recordset[0].Password.includes('$')) {
+      .query(`INSERT INTO ${escapeIdentifier(userTable)} (${escapeIdentifier(userIdColumn)}, ${escapeIdentifier(userPasswordColumn)}, ${escapeIdentifier(adminIdColumn)}) VALUES (@userId, @password, @adminId)`);
+  } else if (!String(defaultUserRes.recordset[0][userPasswordColumn] || "").includes("$")) {
     console.log("Upgrading default user password to hash...");
     const userUpgradeHash = await createPasswordHash(process.env.DEFAULT_USER_PASSWORD || "user123");
     await pool.request()
       .input("userId", sql.NVarChar, process.env.DEFAULT_USER_ID || "user")
       .input("newPass", sql.NVarChar, userUpgradeHash)
-      .query(`UPDATE ${escapeIdentifier(userTable)} SET [Password] = @newPass WHERE [UserID] = @userId`);
+      .query(`UPDATE ${escapeIdentifier(userTable)} SET ${escapeIdentifier(userPasswordColumn)} = @newPass WHERE ${escapeIdentifier(userIdColumn)} = @userId`);
   }
 
   // Ensure ALL accounts have at least one page and widgets
   const allIdentities = [];
-  const adminIds = await pool.request().query("SELECT [AdminID] as ID FROM Admins");
-  const userIds = await pool.request().query("SELECT [UserID] as ID FROM Users");
+  const adminIds = await pool.request().query(`SELECT ${escapeIdentifier(adminIdColumn)} as ID FROM ${escapeIdentifier(adminTable)}`);
+  const userIds = await pool.request().query(`SELECT ${escapeIdentifier(userIdColumn)} as ID FROM ${escapeIdentifier(userTable)}`);
   allIdentities.push(...adminIds.recordset, ...userIds.recordset);
 
   for (const identity of allIdentities) {
@@ -221,7 +225,7 @@ async function initializeDatabase() {
     const pageRes = await pool.request()
       .input("uid", sql.NVarChar, identity.ID)
       .query("SELECT [PageID] FROM UserPages WHERE UserID = @uid AND IsDefault = 1");
-    
+
     if (pageRes.recordset.length === 0) {
       console.log(`Seeding default page for identity: ${identity.ID}`);
       const pageInsertRes = await pool.request()
@@ -235,7 +239,7 @@ async function initializeDatabase() {
     const widgetCheck = await pool.request()
       .input("pid", sql.Int, pageId)
       .query("SELECT COUNT(*) as count FROM Widgets WHERE PageID = @pid");
-    
+
     if (widgetCheck.recordset[0].count === 0) {
       console.log(`Seeding widgets for identity page: ${identity.ID}`);
       const widgets = [

@@ -84,6 +84,10 @@ async function handleLogin(form, endpoint, idFieldName) {
 
 document.addEventListener("DOMContentLoaded", () => {
   document.body.classList.add("is-ready");
+  
+  window.sessionStorage.removeItem(SESSION_KEY);
+  window.sessionStorage.removeItem("activePageId");
+
   const adminForm = document.querySelector("[data-auth-form='admin']");
   const userForm = document.querySelector("[data-auth-form='user']");
 

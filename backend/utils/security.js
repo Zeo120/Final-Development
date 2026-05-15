@@ -1,4 +1,3 @@
-const argon2 = require("argon2");
 const crypto = require("crypto");
 
 function timingSafeEqualString(left, right) {
@@ -12,53 +11,7 @@ function timingSafeEqualString(left, right) {
   return crypto.timingSafeEqual(leftBuffer, rightBuffer);
 }
 
-const SCRYPT_PARAMS = { N: 16384, r: 8, p: 1 };
-const ARGON2_OPTIONS = {
-  type: argon2.argon2id,
-  memoryCost: 1 << 16,
-  timeCost: 3,
-  parallelism: 2
-};
 
-function isArgon2Hash(value) {
-  return typeof value === "string" && value.startsWith("$argon2");
-}
-
-async function createPasswordHash(password) {
-  if (!password) return "";
-  return argon2.hash(password, ARGON2_OPTIONS);
-}
-
-async function verifyPassword(password, storedValue) {
-  if (!password || !storedValue) {
-    return false;
-  }
-
-  if (isArgon2Hash(storedValue)) {
-    return argon2.verify(storedValue, password);
-  }
-
-  if (!storedValue.startsWith("scrypt$")) {
-    return timingSafeEqualString(password, storedValue);
-  }
-
-  const parts = storedValue.split("$");
-  if (parts.length !== 6) {
-    return false;
-  }
-
-  const [_algo, n, r, p, salt, hash] = parts;
-  const derived = crypto.scryptSync(password, salt, 64, {
-    N: parseInt(n, 10),
-    r: parseInt(r, 10),
-    p: parseInt(p, 10)
-  }).toString("base64");
-  return timingSafeEqualString(derived, hash);
-}
-
-function shouldUpgradePasswordHash(storedValue) {
-  return !isArgon2Hash(storedValue);
-}
 
 function sanitizeRecord(record, keysToRemove) {
   if (!record) {
@@ -128,12 +81,9 @@ function isStrongPassword(password) {
 }
 
 module.exports = {
-  createPasswordHash,
   createSignedToken,
   isStrongPassword,
   sanitizeRecord,
-  shouldUpgradePasswordHash,
   timingSafeEqualString,
-  verifyPassword,
   verifySignedToken
 };

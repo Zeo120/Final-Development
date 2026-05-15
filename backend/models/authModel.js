@@ -1,5 +1,6 @@
 const { sql, getPool } = require("../config/db");
-const { createPasswordHash, sanitizeRecord, shouldUpgradePasswordHash, verifyPassword } = require("../utils/security");
+const { sanitizeRecord } = require("../utils/security");
+const { createPasswordHash, shouldUpgradePasswordHash, verifyPassword } = require("../utils/hashpasswords");
 
 function escapeIdentifier(identifier) {
   return `[${String(identifier).replace(/]/g, "]]")}]`;

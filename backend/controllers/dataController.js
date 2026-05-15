@@ -6,11 +6,13 @@ async function getSummaryData(userId, isAdmin) {
   if (isAdmin) {
     const query = `
       SELECT 
-        (SELECT COUNT(*) FROM Projects) as totalProjects,
-        (SELECT COUNT(*) FROM Tasks WHERE IsCompleted = 0) as pendingTasks,
-        (SELECT COUNT(*) FROM Compliance WHERE Status != 'Completed') as activeCompliance
+        (SELECT COUNT(*) FROM Projects WHERE UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)) as totalProjects,
+        (SELECT COUNT(*) FROM Tasks WHERE IsCompleted = 0 AND UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)) as pendingTasks,
+        (SELECT COUNT(*) FROM Compliance WHERE Status != 'Completed' AND UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)) as activeCompliance
     `;
-    const result = await pool.request().query(query);
+    const result = await pool.request()
+      .input("adminId", sql.NVarChar, userId)
+      .query(query);
     return result.recordset[0];
   }
 
@@ -29,13 +31,19 @@ async function getSummaryData(userId, isAdmin) {
 async function getProjectList(userId, isAdmin) {
   const pool = await getPool();
   let query = "SELECT * FROM Projects";
-  if (!isAdmin) {
+  if (isAdmin) {
+    query += " WHERE UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)";
+  } else {
     query += " WHERE UserID = @userId";
   }
   query += " ORDER BY CreatedAt DESC";
 
   const request = pool.request();
-  if (!isAdmin) request.input("userId", sql.NVarChar, userId);
+  if (isAdmin) {
+    request.input("adminId", sql.NVarChar, userId);
+  } else {
+    request.input("userId", sql.NVarChar, userId);
+  }
 
   const result = await request.query(query);
   return result.recordset;
@@ -59,13 +67,15 @@ async function createProject(userId, title, budget) {
 async function updateProjectStatus(projectId, status, userId, isAdmin) {
   const pool = await getPool();
   const query = isAdmin
-    ? "UPDATE Projects SET Status = @status WHERE ProjectID = @projectId"
+    ? "UPDATE Projects SET Status = @status WHERE ProjectID = @projectId AND UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)"
     : "UPDATE Projects SET Status = @status WHERE ProjectID = @projectId AND UserID = @userId";
   const request = pool.request()
     .input("projectId", sql.Int, projectId)
     .input("status", sql.NVarChar, status);
 
-  if (!isAdmin) {
+  if (isAdmin) {
+    request.input("adminId", sql.NVarChar, userId);
+  } else {
     request.input("userId", sql.NVarChar, userId);
   }
 
@@ -76,13 +86,19 @@ async function updateProjectStatus(projectId, status, userId, isAdmin) {
 async function getTaskList(userId, isAdmin) {
   const pool = await getPool();
   let query = "SELECT * FROM Tasks";
-  if (!isAdmin) {
+  if (isAdmin) {
+    query += " WHERE UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)";
+  } else {
     query += " WHERE UserID = @userId";
   }
   query += " ORDER BY DueDate ASC, CreatedAt DESC";
 
   const request = pool.request();
-  if (!isAdmin) request.input("userId", sql.NVarChar, userId);
+  if (isAdmin) {
+    request.input("adminId", sql.NVarChar, userId);
+  } else {
+    request.input("userId", sql.NVarChar, userId);
+  }
 
   const result = await request.query(query);
   return result.recordset;
@@ -107,13 +123,15 @@ async function createTask(userId, description, priority, dueDate) {
 async function toggleTaskCompletion(taskId, isCompleted, userId, isAdmin) {
   const pool = await getPool();
   const query = isAdmin
-    ? "UPDATE Tasks SET IsCompleted = @isCompleted WHERE TaskID = @taskId"
+    ? "UPDATE Tasks SET IsCompleted = @isCompleted WHERE TaskID = @taskId AND UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)"
     : "UPDATE Tasks SET IsCompleted = @isCompleted WHERE TaskID = @taskId AND UserID = @userId";
   const request = pool.request()
     .input("taskId", sql.Int, taskId)
     .input("isCompleted", sql.Bit, Boolean(isCompleted));
 
-  if (!isAdmin) {
+  if (isAdmin) {
+    request.input("adminId", sql.NVarChar, userId);
+  } else {
     request.input("userId", sql.NVarChar, userId);
   }
 
@@ -124,13 +142,19 @@ async function toggleTaskCompletion(taskId, isCompleted, userId, isAdmin) {
 async function getComplianceList(userId, isAdmin) {
   const pool = await getPool();
   let query = "SELECT * FROM Compliance";
-  if (!isAdmin) {
+  if (isAdmin) {
+    query += " WHERE UserID IN (SELECT UserID FROM Users WHERE AdminID = @adminId)";
+  } else {
     query += " WHERE UserID = @userId";
   }
   query += " ORDER BY Deadline ASC";
 
   const request = pool.request();
-  if (!isAdmin) request.input("userId", sql.NVarChar, userId);
+  if (isAdmin) {
+    request.input("adminId", sql.NVarChar, userId);
+  } else {
+    request.input("userId", sql.NVarChar, userId);
+  }
 
   const result = await request.query(query);
   return result.recordset;
@@ -232,6 +256,11 @@ async function createProjectHandler(req, res, next) {
       return res.status(400).json({ success: false, message: "User ID and title are required." });
     }
 
+    const hasAccess = await userBelongsToAdmin(auth.userId, userId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, message: "Not allowed to manage that client." });
+    }
+
     const project = await createProject(userId, title, budget);
     res.status(201).json({ success: true, project });
   } catch (err) {
@@ -288,6 +317,11 @@ async function createTaskHandler(req, res, next) {
       return res.status(400).json({ success: false, message: "User ID and description are required." });
     }
 
+    const hasAccess = await userBelongsToAdmin(auth.userId, userId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, message: "Not allowed to manage that client." });
+    }
+
     const task = await createTask(userId, description, priority, dueDate);
     res.status(201).json({ success: true, task });
   } catch (err) {
@@ -341,6 +375,11 @@ async function createComplianceItemHandler(req, res, next) {
 
     if (!userId || !title) {
       return res.status(400).json({ success: false, message: "User ID and title are required." });
+    }
+
+    const hasAccess = await userBelongsToAdmin(auth.userId, userId);
+    if (!hasAccess) {
+      return res.status(403).json({ success: false, message: "Not allowed to manage that client." });
     }
 
     const item = await createComplianceItem(userId, title, deadline);

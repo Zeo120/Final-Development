@@ -1,0 +1,42 @@
+# Paradigm | Admin + User Hub
+
+> Paradigm is a secure, enterprise-grade admin and user management platform.
+
+## What is Paradigm?
+
+Paradigm is a web application that provides a unified console experience for administrators and their assigned users. It is designed for regulated industries that require strict data governance, audit trails, and access control.
+
+## Key Features
+
+- **Admin Console**: A modular dashboard for compliance leaders to manage users, verify data, and orchestrate workflows.
+- **User Portal**: A secure workspace where users can view assignments, manage data, and track status with context-aware guidance.
+- **Super Admin Panel**: A top-level authority layer for provisioning and managing admin accounts.
+
+## Who uses Paradigm?
+
+- **Administrators**: Compliance leaders, team managers, and operations staff.
+- **Users**: Clients, employees, or external stakeholders who interact with admin-managed data.
+- **Super Admins**: IT or platform owners who provision the system.
+
+## Technology
+
+- Backend: Node.js with Express, SQL Server database.
+- Authentication: Stateless JWT sessions with Argon2 password hashing.
+- Security: Enterprise-grade rate limiting, strict tenant isolation, and zero-cache enforcement.
+
+## Public Pages
+
+- `/` — Landing page and product overview.
+
+## Access-Controlled Pages (Not publicly accessible)
+
+- `/admin-login` — Admin authentication portal.
+- `/user-login` — User authentication portal.
+- `/super-admin-login` — Super admin authentication portal.
+- `/admin-dashboard` — Admin workspace (requires authentication).
+- `/user-dashboard` — User workspace (requires authentication).
+- `/super-admin-dashboard` — Super admin workspace (requires authentication).
+
+## API
+
+All API endpoints are under `/api/` and require valid JWT authentication tokens. They are not intended for public access or crawling.
