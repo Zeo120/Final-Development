@@ -1,5 +1,5 @@
 const { sql, getPool } = require("./db");
-const { createPasswordHash } = require("../utils/hashpasswords");
+const { createPasswordHash, verifyPassword } = require("../utils/hashpasswords");
 
 function escapeIdentifier(identifier) {
   return `[${String(identifier).replace(/]/g, "]]")}]`;
@@ -184,7 +184,10 @@ async function initializeDatabase() {
   const adminRes = await pool.request()
     .input("aid", sql.NVarChar, process.env.DEFAULT_ADMIN_ID || "admin")
     .query(`SELECT * FROM ${escapeIdentifier(adminTable)} WHERE ${escapeIdentifier(adminIdColumn)} = @aid`);
-  if (adminRes.recordset.length > 0 && !String(adminRes.recordset[0][adminPasswordColumn] || "").includes("$")) {
+  if (
+    adminRes.recordset.length > 0 &&
+    !(await verifyPassword(process.env.DEFAULT_ADMIN_PASSWORD || "admin123", adminRes.recordset[0][adminPasswordColumn]))
+  ) {
     console.log("Upgrading admin password to hash...");
     const adminPassHash = await createPasswordHash(process.env.DEFAULT_ADMIN_PASSWORD || "admin123");
     await pool.request()
@@ -205,7 +208,9 @@ async function initializeDatabase() {
       .input("password", sql.NVarChar, userPassHash)
       .input("adminId", sql.NVarChar, process.env.DEFAULT_ADMIN_ID || "admin")
       .query(`INSERT INTO ${escapeIdentifier(userTable)} (${escapeIdentifier(userIdColumn)}, ${escapeIdentifier(userPasswordColumn)}, ${escapeIdentifier(adminIdColumn)}) VALUES (@userId, @password, @adminId)`);
-  } else if (!String(defaultUserRes.recordset[0][userPasswordColumn] || "").includes("$")) {
+  } else if (
+    !(await verifyPassword(process.env.DEFAULT_USER_PASSWORD || "user123", defaultUserRes.recordset[0][userPasswordColumn]))
+  ) {
     console.log("Upgrading default user password to hash...");
     const userUpgradeHash = await createPasswordHash(process.env.DEFAULT_USER_PASSWORD || "user123");
     await pool.request()

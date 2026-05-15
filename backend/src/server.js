@@ -28,24 +28,16 @@ let databaseInitializationState = {
   message: "Database initialization has not started."
 };
 
-function runDatabaseInitialization() {
+async function runDatabaseInitialization() {
   databaseInitializationState = {
     ready: false,
     message: "Database initialization is starting."
   };
 
-  void (async () => {
-    try {
-      await initializeDatabase();
-      databaseInitializationState = { ready: true, message: "Database initialized successfully." };
-    } catch (error) {
-      databaseInitializationState = {
-        ready: false,
-        message: String(error && error.message ? error.message : "Database initialization failed.")
-      };
-      console.error("Failed to initialize database.", error);
-    }
-  })();
+  console.log("Initializing database...");
+  await initializeDatabase();
+  databaseInitializationState = { ready: true, message: "Database initialized successfully." };
+  console.log("Database initialized successfully");
 }
 
 // Global Middleware
@@ -97,9 +89,10 @@ app.use((err, _req, res, _next) => {
 // Initialization
 let server;
 async function startServer() {
+  await runDatabaseInitialization();
+
   server = app.listen(port, () => {
     console.log(`Paradigm server listening on http://localhost:${port}`);
-    runDatabaseInitialization();
   });
 }
 
@@ -127,4 +120,11 @@ process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
 process.on("SIGINT", () => gracefulShutdown("SIGINT"));
 
 assertRequiredSecurityEnv();
-startServer();
+startServer().catch((error) => {
+  databaseInitializationState = {
+    ready: false,
+    message: String(error && error.message ? error.message : "Database initialization failed.")
+  };
+  console.error("Failed to initialize database.", error);
+  process.exit(1);
+});

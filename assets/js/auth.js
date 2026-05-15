@@ -30,10 +30,18 @@ function resolveLandingRoute(role, userId, userRecord) {
 }
 
 async function handleLogin(form, endpoint, idFieldName) {
+  if (form.dataset.authBound === "true") {
+    return;
+  }
+
   const submitButton = form.querySelector("button[type='submit']");
   const statusNode = form.querySelector("[data-auth-status]");
 
-  form.addEventListener("submit", async (event) => {
+  if (!submitButton || !statusNode) {
+    return;
+  }
+
+  const submitLogin = async (event) => {
     event.preventDefault();
 
     const formData = new FormData(form);
@@ -79,10 +87,23 @@ async function handleLogin(form, endpoint, idFieldName) {
     } finally {
       submitButton.disabled = false;
     }
+  };
+
+  form.addEventListener("submit", submitLogin);
+  submitButton.addEventListener("click", (event) => {
+    event.preventDefault();
+
+    if (typeof form.requestSubmit === "function") {
+      form.requestSubmit(submitButton);
+      return;
+    }
+
+    form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
   });
+  form.dataset.authBound = "true";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+function initializeAuthForms() {
   document.body.classList.add("is-ready");
   
   window.sessionStorage.removeItem(SESSION_KEY);
@@ -98,4 +119,10 @@ document.addEventListener("DOMContentLoaded", () => {
   if (userForm) {
     handleLogin(userForm, "/api/auth/user-login", "userId");
   }
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeAuthForms);
+} else {
+  initializeAuthForms();
+}
