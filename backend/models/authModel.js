@@ -249,6 +249,18 @@ async function updateAssignedUserCredentials(adminId, currentUserId, nextUserId,
       request.input("nextPassword", sql.NVarChar, await createPasswordHash(nextPassword));
     }
 
+    if (updates.length === 0) {
+      await transaction.rollback();
+
+      return {
+        status: "no_changes",
+        user: sanitizeRecord(
+          existingUser,
+          [process.env.USER_PASSWORD_COLUMN || "Password"]
+        )
+      };
+    }
+
     const updatedUserResult = await request.query(`
       UPDATE ${userTable}
       SET ${updates.join(", ")}

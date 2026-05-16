@@ -1,4 +1,4 @@
-const { getUserPages, getPageWidgets, createPage, addWidget, deleteWidget } = require("../models/pageModel");
+const { getUserPages, getPageWidgets, getOwnedWidget, createPage, addWidget, deleteWidget } = require("../models/pageModel");
 const { requireAppAuth } = require("./authController");
 
 function parseBoolean(value) {
@@ -68,6 +68,14 @@ async function createNewPage(req, res, next) {
       return res.status(400).json({ success: false, message: "Title and slug are required." });
     }
 
+    const slugPattern = /^[a-z0-9-]+$/i;
+    if (!slugPattern.test(slug)) {
+      return res.status(400).json({
+        success: false,
+        message: "Slug may only contain letters, numbers, and hyphens."
+      });
+    }
+
     const page = await createPage(auth.userId, title, slug, isDefault);
     return res.status(201).json({ success: true, page });
   } catch (err) {
@@ -114,16 +122,7 @@ async function removeWidget(req, res, next) {
       return res.status(400).json({ success: false, message: "A valid widget ID is required." });
     }
 
-    const pages = await getUserPages(auth.userId);
-    let targetWidget = null;
-
-    for (const page of pages) {
-      const widgets = await getPageWidgets(page.PageID);
-      targetWidget = widgets.find((widget) => Number(widget.WidgetID) === widgetId) || null;
-      if (targetWidget) {
-        break;
-      }
-    }
+    const targetWidget = await getOwnedWidget(widgetId, auth.userId);
 
     if (!targetWidget) {
       return res.status(404).json({ success: false, message: "Widget not found." });

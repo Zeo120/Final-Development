@@ -10,31 +10,31 @@
 </head>
 <body>
   <div class="auth-shell">
-    <div class="auth-container" style="max-width: 500px; grid-template-columns: 1fr;">
+    <div class="auth-container super-admin-auth-container">
       <section class="auth-form-panel">
         <div class="glass-card auth-card">
           <a class="auth-back" href="/admin-login">&larr; Back to Admin Console</a>
 
           <div class="auth-header">
-            <div class="auth-brand" style="margin-bottom: 1.5rem;">
+            <div class="auth-brand auth-brand-spaced">
               <div class="auth-brand-copy">
                 <span>Paradigm</span>
                 <strong>System Console</strong>
               </div>
             </div>
-            <h2 style="color: var(--accent);">System Management</h2>
+            <h2 class="accent-heading">System Management</h2>
             <p>Privileged environment for system administrators.</p>
           </div>
 
           <form data-super-admin-login-form>
             <div class="form-group">
               <label for="super-admin-login-id">Super Admin ID</label>
-              <input id="super-admin-login-id" name="superAdminId" type="text" class="form-control" placeholder="Root ID" required>
+              <input id="super-admin-login-id" name="superAdminId" type="text" class="form-control" placeholder="Root ID" autocomplete="username" required>
             </div>
 
             <div class="form-group">
               <label for="super-admin-login-password">System Password</label>
-              <input id="super-admin-login-password" name="superAdminPassword" type="password" class="form-control" placeholder="********" required>
+              <input id="super-admin-login-password" name="superAdminPassword" type="password" class="form-control" placeholder="********" autocomplete="current-password" required>
             </div>
 
             <button class="btn btn-primary" type="submit">Initialize Access</button>

@@ -66,7 +66,35 @@ app.get("/llms.txt", (_req, res) => {
 
 // Static Assets
 app.use(express.static(rootDir, {
-  setHeaders(res) {
+  setHeaders(res, filePath) {
+    const ext = path.extname(filePath).toLowerCase();
+    const cacheableExtensions = new Set([
+      ".css",
+      ".js",
+      ".png",
+      ".jpg",
+      ".jpeg",
+      ".gif",
+      ".svg",
+      ".ico",
+      ".webp",
+      ".avif",
+      ".woff",
+      ".woff2",
+      ".ttf",
+      ".otf"
+    ]);
+
+    if (ext === ".html") {
+      res.setHeader("Cache-Control", "no-store");
+      return;
+    }
+
+    if (cacheableExtensions.has(ext)) {
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      return;
+    }
+
     res.setHeader("Cache-Control", "no-store");
   }
 }));

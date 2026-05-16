@@ -24,27 +24,53 @@
       <section class="dashboard-hero">
         <p class="feature-index">Operations Hub</p>
         <h1 id="dashboard-title-dynamic">Firm Management Dashboard</h1>
+        <p class="dashboard-hero-copy">Coordinate engagements, oversee compliance threads, and manage user workstreams from a centralized int<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paradigm | Admin Console</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="../assets/images/favicon-32.png">
+  <link rel="stylesheet" href="../assets/css/style.css">
+  <link rel="stylesheet" href="../assets/css/auth.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="nav">
+      <div class="brand">
+        <span>Admin Console</span>
+      </div>
+      <div class="nav-actions">
+        <a href="/" class="btn btn-secondary">Home</a>
+        <button class="btn btn-primary" data-logout>Sign Out</button>
+      </div>
+    </header>
+
+    <main>
+      <section class="dashboard-hero">
+        <p class="feature-index">Operations Hub</p>
+        <h1 id="dashboard-title-dynamic">Firm Management Dashboard</h1>
         <p class="dashboard-hero-copy">Coordinate engagements, oversee compliance threads, and manage user workstreams from a centralized interface.</p>
       </section>
 
       <div class="features-grid">
-        <article class="glass-card" style="border-left: 4px solid var(--accent);">
+        <article class="glass-card session-card-accent">
           <span class="feature-index">CURRENT SESSION</span>
           <h2 data-user-id>Administrator</h2>
-          <p style="margin-top: 1rem; font-size: 0.875rem;">Authenticated session active for firm-level operations.</p>
+          <p class="card-copy">Authenticated session active for firm-level operations.</p>
         </article>
 
         <article class="glass-card">
           <span class="feature-index">OPERATIONAL LOAD</span>
           <h2>Active Threads</h2>
           <div class="metric-stack">
-            <div class="metric glass" style="padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
-              <span style="font-size: 0.75rem;">TAX FILINGS</span>
-              <strong style="font-size: 1.25rem;">12 Pending</strong>
+            <div class="metric glass metric-card">
+              <span class="metric-label">TAX FILINGS</span>
+              <strong class="metric-value">12 Pending</strong>
             </div>
-            <div class="metric glass" style="padding: 1rem; border-radius: 12px; border: 1px solid var(--border);">
-              <span style="font-size: 0.75rem;">COMPLIANCE OPS</span>
-              <strong style="font-size: 1.25rem;">08 Active</strong>
+            <div class="metric glass metric-card">
+              <span class="metric-label">COMPLIANCE OPS</span>
+              <strong class="metric-value">08 Active</strong>
             </div>
           </div>
         </article>
@@ -52,31 +78,31 @@
         <article class="glass-card">
           <span class="feature-index">ENGAGEMENT STATUS</span>
           <h2>Health Metrics</h2>
-          <p style="margin-top: 1rem; font-size: 0.875rem;">System-wide reporting on deadlines and documentation status.</p>
-          <div style="margin-top: 1.5rem;">
-            <div style="height: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; overflow: hidden;">
-              <div style="width: 75%; height: 100%; background: var(--accent);"></div>
+          <p class="card-copy">System-wide reporting on deadlines and documentation status.</p>
+          <div class="completion-wrap">
+            <div class="completion-track">
+              <div class="completion-bar"></div>
             </div>
-            <p style="font-size: 0.75rem; margin-top: 0.5rem; color: var(--text-muted);">OVERALL COMPLETION: 75%</p>
+            <p class="completion-label">OVERALL COMPLETION: 75%</p>
           </div>
         </article>
       </div>
 
-      <div id="page-tabs-container" style="display: flex; gap: 0.5rem; margin-top: 2rem;">
+      <div id="page-tabs-container">
         <!-- Page tabs will be injected here -->
       </div>
 
-      <div id="dashboard-widgets-container" class="features-grid" style="margin-top: 2rem;">
+      <div id="dashboard-widgets-container" class="features-grid">
         <!-- Modular Widgets will be injected here -->
-        <article class="glass-card" style="grid-column: span 3; text-align: center; padding: 4rem;">
-          <p style="opacity: 0.5;">Synchronizing modular workspaces...</p>
+        <article class="glass-card dashboard-placeholder">
+          <p class="muted-copy">Synchronizing modular workspaces...</p>
         </article>
       </div>
 
-      <div id="modal-manage-user" class="auth-shell" style="display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center;">
-        <div class="glass-card" style="width: 420px;">
+      <div id="modal-manage-user" class="auth-shell dashboard-modal">
+        <div class="glass-card modal-card--wide">
           <h3>Manage Assigned User</h3>
-          <form id="form-manage-user" style="margin-top: 1.5rem;">
+          <form id="form-manage-user" class="modal-form">
             <div class="form-group">
               <label>Select User</label>
               <select name="currentUserId" class="form-control" id="select-users-manage" required>
@@ -93,18 +119,18 @@
             </div>
             <div class="auth-status" data-manage-user-status></div>
             <div class="modal-actions">
-              <button type="submit" class="btn btn-primary" style="flex: 1;">Save Changes</button>
-              <button type="button" class="btn btn-secondary" onclick="this.closest('#modal-manage-user').style.display='none'">Cancel</button>
+              <button type="submit" class="btn btn-primary modal-submit">Save Changes</button>
+              <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
             </div>
           </form>
         </div>
       </div>
 
       <!-- Modals for Creation -->
-      <div id="modal-project" class="auth-shell" style="display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center;">
-        <div class="glass-card" style="width: 400px;">
+      <div id="modal-project" class="auth-shell dashboard-modal">
+        <div class="glass-card modal-card">
           <h3>Create New Project</h3>
-          <form id="form-create-project" style="margin-top: 1.5rem;">
+          <form id="form-create-project" class="modal-form">
             <div class="form-group">
               <label>Select Client</label>
               <select name="userId" class="form-control" id="select-users-project" required>
@@ -120,17 +146,17 @@
               <input name="budget" type="number" class="form-control" placeholder="50000">
             </div>
             <div class="modal-actions">
-              <button type="submit" class="btn btn-primary" style="flex: 1;">Create</button>
-              <button type="button" class="btn btn-secondary" onclick="this.closest('#modal-project').style.display='none'">Cancel</button>
+              <button type="submit" class="btn btn-primary modal-submit">Create</button>
+              <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
             </div>
           </form>
         </div>
       </div>
 
-      <div id="modal-task" class="auth-shell" style="display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center;">
-        <div class="glass-card" style="width: 400px;">
+      <div id="modal-task" class="auth-shell dashboard-modal">
+        <div class="glass-card modal-card">
           <h3>Assign Priority Task</h3>
-          <form id="form-create-task" style="margin-top: 1.5rem;">
+          <form id="form-create-task" class="modal-form">
             <div class="form-group">
               <label>Assignee</label>
               <select name="userId" class="form-control" id="select-users-task" required>
@@ -150,8 +176,8 @@
               </select>
             </div>
             <div class="modal-actions">
-              <button type="submit" class="btn btn-primary" style="flex: 1;">Assign</button>
-              <button type="button" class="btn btn-secondary" onclick="this.closest('#modal-task').style.display='none'">Cancel</button>
+              <button type="submit" class="btn btn-primary modal-submit">Assign</button>
+              <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
             </div>
           </form>
         </div>
@@ -162,20 +188,20 @@
           <h3>Infrastructure</h3>
           <div class="detail-stack">
             <div>
-              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Authority Role</span>
-              <strong data-user-role style="display: block; font-size: 1.1rem;">admin</strong>
+              <span class="detail-label">Authority Role</span>
+              <strong data-user-role class="detail-value">admin</strong>
             </div>
             <div>
-              <span style="font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase;">Registry ID</span>
-              <strong data-user-id-secondary style="display: block; font-size: 1.1rem;">admin</strong>
+              <span class="detail-label">Registry ID</span>
+              <strong data-user-id-secondary class="detail-value">admin</strong>
             </div>
           </div>
-          <button class="btn btn-secondary" type="button" style="margin-top: 1.5rem; width: 100%;" onclick="document.getElementById('modal-manage-user').style.display='flex'">Manage Assigned Users</button>
+          <button class="btn btn-secondary admin-action-button" type="button" data-open-modal="modal-manage-user">Manage Assigned Users</button>
         </article>
       </div>
 
       <div class="features-grid">
-        <article class="glass-card compliance-management" style="grid-column: 1 / -1;">
+        <article class="glass-card compliance-management full-grid-card">
           <div class="section-header">
             <div>
               <span class="feature-index">CLIENT MANAGEMENT</span>
@@ -185,12 +211,12 @@
           </div>
           <div class="compliance-management__forms">
             <form id="form-compliance-year">
-              <p style="font-size: 0.85rem; letter-spacing: 0.2rem; text-transform: uppercase;">Financial Years</p>
+              <p class="compliance-form-title">Financial Years</p>
               <div class="compliance-form-grid">
                 <div class="form-group">
                   <label>Select Client</label>
                   <select id="select-users-compliance-year" name="userId" class="form-control" required>
-                    <option value="">Loading clients…</option>
+                    <option value="">Loading clientsâ€¦</option>
                   </select>
                 </div>
                 <div class="form-group">
@@ -206,14 +232,14 @@
                   <input name="endDate" type="date" class="form-control" required>
                 </div>
               </div>
-              <div class="modal-actions" style="margin-top: 0;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Create Fiscal Year</button>
+              <div class="modal-actions modal-actions--compact">
+                <button type="submit" class="btn btn-primary modal-submit">Create Fiscal Year</button>
               </div>
               <div class="auth-status" data-compliance-year-status></div>
             </form>
 
             <form id="form-compliance-month">
-              <p style="font-size: 0.85rem; letter-spacing: 0.2rem; text-transform: uppercase;">Monthly Status</p>
+              <p class="compliance-form-title">Monthly Status</p>
               <div class="compliance-form-grid">
                 <div class="form-group">
                   <label>Select Client</label>
@@ -241,18 +267,18 @@
                   </select>
                 </div>
                 <div class="form-group">
-                  <label>Total ITC (₹)</label>
+                  <label>Total ITC (â‚¹)</label>
                   <input name="totalItc" type="number" min="0" step="0.01" class="form-control" placeholder="e.g. 12500">
                 </div>
               </div>
-              <div class="modal-actions" style="margin-top: 0;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Add Month</button>
+              <div class="modal-actions modal-actions--compact">
+                <button type="submit" class="btn btn-primary modal-submit">Add Month</button>
               </div>
               <div class="auth-status" data-compliance-month-status></div>
             </form>
 
             <form id="form-compliance-invoice">
-              <p style="font-size: 0.85rem; letter-spacing: 0.2rem; text-transform: uppercase;">Invoice Ledger</p>
+              <p class="compliance-form-title">Invoice Ledger</p>
               <div class="compliance-form-grid">
                 <div class="form-group">
                   <label>Select Client</label>
@@ -297,8 +323,8 @@
                   <input name="igst" type="number" min="0" step="0.01" class="form-control" placeholder="IGST">
                 </div>
               </div>
-              <div class="modal-actions" style="margin-top: 0;">
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Add Invoice</button>
+              <div class="modal-actions modal-actions--compact">
+                <button type="submit" class="btn btn-primary modal-submit">Add Invoice</button>
               </div>
               <div class="auth-status" data-compliance-invoice-status></div>
             </form>
@@ -306,26 +332,26 @@
         </article>
       </div>
       <!-- Modals for Creation -->
-      <div id="modal-create-page" class="auth-shell" style="display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center;">
-        <div class="glass-card" style="width: 400px;">
+      <div id="modal-create-page" class="auth-shell dashboard-modal">
+        <div class="glass-card modal-card">
           <h3>Create New Workspace Page</h3>
-          <form onsubmit="addPage(event)" style="margin-top: 1.5rem;">
+          <form data-add-page-form class="modal-form">
             <div class="form-group">
               <label>Page Title</label>
               <input name="title" type="text" class="form-control" placeholder="e.g. Q4 Audit Hub" required>
             </div>
             <div class="modal-actions">
-              <button type="submit" class="btn btn-primary" style="flex: 1;">Create</button>
-              <button type="button" class="btn btn-secondary" onclick="this.closest('.auth-shell').style.display='none'">Cancel</button>
+              <button type="submit" class="btn btn-primary modal-submit">Create</button>
+              <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
             </div>
           </form>
         </div>
       </div>
 
-      <div id="modal-add-widget" class="auth-shell" style="display: none; position: fixed; inset: 0; z-index: 101; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); align-items: center; justify-content: center;">
-        <div class="glass-card" style="width: 400px;">
+      <div id="modal-add-widget" class="auth-shell dashboard-modal dashboard-modal--top">
+        <div class="glass-card modal-card">
           <h3>Add Modular Widget</h3>
-          <form onsubmit="createWidget(event)" style="margin-top: 1.5rem;">
+          <form data-create-widget-form class="modal-form">
             <input type="hidden" name="pageId" id="input-widget-page-id">
             <div class="form-group">
               <label>Widget Type</label>
@@ -339,8 +365,8 @@
               <input name="title" type="text" class="form-control" placeholder="e.g. Urgent Matters">
             </div>
             <div class="modal-actions">
-              <button type="submit" class="btn btn-primary" style="flex: 1;">Add</button>
-              <button type="button" class="btn btn-secondary" onclick="this.closest('.auth-shell').style.display='none'">Cancel</button>
+              <button type="submit" class="btn btn-primary modal-submit">Add</button>
+              <button type="button" class="btn btn-secondary" data-close-modal>Cancel</button>
             </div>
           </form>
         </div>

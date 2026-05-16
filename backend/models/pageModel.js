@@ -26,6 +26,25 @@ async function getPageWidgets(pageId) {
   return result.recordset;
 }
 
+async function getOwnedWidget(widgetId, userId) {
+  const pool = await getPool();
+
+  const result = await pool.request()
+    .input("widgetId", sql.Int, widgetId)
+    .input("userId", sql.NVarChar, userId)
+    .query(`
+      SELECT w.*
+      FROM Widgets w
+      INNER JOIN UserPages p
+        ON p.PageID = w.PageID
+      WHERE
+        w.WidgetID = @widgetId
+        AND p.UserID = @userId
+    `);
+
+  return result.recordset[0] || null;
+}
+
 async function createPage(userId, title, slug, isDefault = false) {
   const pool = await getPool();
   const query = `
@@ -75,6 +94,7 @@ async function deleteWidget(widgetId) {
 module.exports = {
   getUserPages,
   getPageWidgets,
+  getOwnedWidget,
   createPage,
   addWidget,
   deleteWidget

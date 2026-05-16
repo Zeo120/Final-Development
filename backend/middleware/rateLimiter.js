@@ -14,6 +14,7 @@
  * when we scale to multiple servers, rate limits are globally enforced via Redis.
  * ============================================================================
  */
+const crypto = require("crypto");
 const { get, set } = require("../utils/cacheAdapter");
 
 function createRateLimitMiddleware({ windowMs, maxRequests, keyGenerator }) {
@@ -78,7 +79,12 @@ const sessionRateLimit = createRateLimitMiddleware({
   keyGenerator: (req) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
-      return `session:${authHeader}`;
+      const hashed = crypto
+        .createHash("sha256")
+        .update(authHeader)
+        .digest("hex");
+
+      return `session:${hashed}`;
     }
     const forwardedFor = String(req.headers["x-forwarded-for"] || "");
     const sourceIp = forwardedFor.split(",")[0].trim() || req.socket.remoteAddress || "unknown";

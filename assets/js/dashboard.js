@@ -47,6 +47,19 @@ function clearSessionAndRedirect() {
   window.location.replace("/");
 }
 
+function openModalById(id) {
+  const modal = document.getElementById(id);
+  if (modal) {
+    modal.classList.add("is-open");
+  }
+}
+
+function closeModal(modal) {
+  if (modal) {
+    modal.classList.remove("is-open");
+  }
+}
+
 async function apiRequest(url, options = {}) {
   const session = loadSession();
   const headers = {
@@ -121,9 +134,6 @@ function renderPageTabs(pages, session) {
     button.type = "button";
     button.className = `btn ${isActive ? "btn-primary" : "btn-secondary"}`;
     button.textContent = page.Title || `Page ${page.PageID}`;
-    button.style.padding = "0.5rem 1rem";
-    button.style.fontSize = "0.8rem";
-    button.style.borderRadius = "8px";
     button.addEventListener("click", () => switchPage(page.PageID, userId, role));
     fragment.appendChild(button);
   });
@@ -131,15 +141,9 @@ function renderPageTabs(pages, session) {
   const addButton = document.createElement("button");
   addButton.type = "button";
   addButton.className = "btn btn-secondary";
-  addButton.style.padding = "0.5rem 1rem";
-  addButton.style.fontSize = "0.8rem";
-  addButton.style.borderRadius = "8px";
   addButton.textContent = "+";
   addButton.addEventListener("click", () => {
-    const modal = document.getElementById("modal-create-page");
-    if (modal) {
-      modal.style.display = "flex";
-    }
+    openModalById("modal-create-page");
   });
   fragment.appendChild(addButton);
 
@@ -175,8 +179,7 @@ async function renderWidgets(widgets, session, pageId) {
     if (session?.role === "admin") {
       const placeholder = document.createElement("article");
       placeholder.className = "glass-card widget-item";
-      placeholder.style.margin = "0";
-      placeholder.innerHTML = "<p style='opacity:0.5;'>No widgets configured yet.</p>";
+      placeholder.innerHTML = "<p class=\"muted-copy\">No widgets configured yet.</p>";
       container.appendChild(placeholder);
     }
   }
@@ -185,28 +188,20 @@ async function renderWidgets(widgets, session, pageId) {
 
   widgets.forEach((widget) => {
     const section = document.createElement("article");
-    section.className = "glass-card widget-item";
-    section.style.position = "relative";
+    section.className = "glass-card widget-item widget-panel";
 
     const header = document.createElement("div");
-    header.style.display = "flex";
-    header.style.justifyContent = "space-between";
-    header.style.alignItems = "center";
-    header.style.marginBottom = "1.5rem";
+    header.className = "widget-header";
 
     const title = document.createElement("h3");
     title.textContent = widget.Title || widget.Type;
     header.appendChild(title);
 
     const headerMeta = document.createElement("div");
-    headerMeta.style.display = "flex";
-    headerMeta.style.gap = "0.5rem";
-    headerMeta.style.alignItems = "center";
+    headerMeta.className = "widget-header-meta";
 
     const typeBadge = document.createElement("span");
-    typeBadge.style.fontSize = "0.6rem";
-    typeBadge.style.color = "var(--text-muted)";
-    typeBadge.style.textTransform = "uppercase";
+    typeBadge.className = "widget-type-badge";
     typeBadge.textContent = widget.Type;
     headerMeta.appendChild(typeBadge);
 
@@ -214,11 +209,7 @@ async function renderWidgets(widgets, session, pageId) {
       const removeButton = document.createElement("button");
       removeButton.type = "button";
       removeButton.innerHTML = "&times;";
-      removeButton.style.background = "none";
-      removeButton.style.border = "none";
-      removeButton.style.color = "var(--text-muted)";
-      removeButton.style.cursor = "pointer";
-      removeButton.style.fontSize = "0.8rem";
+      removeButton.className = "widget-remove-button";
       removeButton.addEventListener("click", () => removeWidget(widget.WidgetID, pageId, session.userId, session.role));
       headerMeta.appendChild(removeButton);
     }
@@ -237,22 +228,13 @@ async function renderWidgets(widgets, session, pageId) {
 
   if (session?.role === "admin") {
     const addWidgetCard = document.createElement("article");
-    addWidgetCard.className = "glass-card widget-item";
-    addWidgetCard.style.display = "flex";
-    addWidgetCard.style.alignItems = "center";
-    addWidgetCard.style.justifyContent = "center";
-    addWidgetCard.style.borderStyle = "dashed";
-    addWidgetCard.style.opacity = "0.5";
-    addWidgetCard.style.cursor = "pointer";
+    addWidgetCard.className = "glass-card widget-item add-widget-card";
     addWidgetCard.addEventListener("click", () => {
       const pageInput = document.getElementById("input-widget-page-id");
       if (pageInput) {
         pageInput.value = pageId;
       }
-      const modal = document.getElementById("modal-add-widget");
-      if (modal) {
-        modal.style.display = "flex";
-      }
+      openModalById("modal-add-widget");
     });
     const placeholder = document.createElement("span");
     placeholder.textContent = "+ Add Widget";
@@ -285,7 +267,7 @@ async function addPage(event) {
       body: JSON.stringify(payload)
     });
     form.reset();
-    form.closest(".auth-shell").style.display = "none";
+    closeModal(form.closest(".auth-shell"));
     await fetchDashboardData(session);
   } catch (err) {
     console.error(err);
@@ -310,7 +292,7 @@ async function createWidget(event) {
       body: JSON.stringify(payload)
     });
     form.reset();
-    form.closest(".auth-shell").style.display = "none";
+    closeModal(form.closest(".auth-shell"));
     await fetchDashboardData(session);
   } catch (err) {
     console.error(err);
@@ -351,7 +333,7 @@ async function loadWidgetData(widget, session) {
 
 function renderProjectsIntoWidget(container, data) {
   if (data.length === 0) {
-    container.innerHTML = "<p style=\"opacity:0.5;\">No active projects.</p>";
+    container.innerHTML = "<p class=\"muted-copy\">No active projects.</p>";
     return;
   }
 
@@ -363,7 +345,7 @@ function renderProjectsIntoWidget(container, data) {
           <tr>
             <td><strong>${project.Title}</strong></td>
             <td>Rs ${Number(project.Budget || 0).toLocaleString()}</td>
-            <td><span class="glass" style="padding: 2px 6px; font-size: 0.7rem; border: 1px solid var(--accent);">${project.Status}</span></td>
+            <td><span class="glass project-status-badge">${project.Status}</span></td>
           </tr>
         `).join("")}
       </tbody>
@@ -373,21 +355,39 @@ function renderProjectsIntoWidget(container, data) {
 
 function renderTasksIntoWidget(container, data, role) {
   if (data.length === 0) {
-    container.innerHTML = "<p style=\"opacity:0.5;\">No pending tasks.</p>";
+    container.innerHTML = "<p class=\"muted-copy\">No pending tasks.</p>";
     return;
   }
 
-  container.innerHTML = `
-    <ul style="list-style: none; display: grid; gap: 0.75rem;">
-      ${data.map((task) => `
-        <li style="display: flex; gap: 0.75rem; align-items: center; padding: 0.75rem; background: rgba(255,255,255,0.02); border-radius: 8px;">
-          <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent); opacity: ${task.Priority === "High" ? 1 : 0.3};"></div>
-          <span style="flex: 1; font-size: 0.9rem;">${task.Description}</span>
-          ${role === "user" ? `<input type="checkbox" ${task.IsCompleted ? "checked" : ""} onchange="toggleTask(${task.TaskID}, this.checked)">` : ""}
-        </li>
-      `).join("")}
-    </ul>
-  `;
+  container.innerHTML = "";
+  const list = document.createElement("ul");
+  list.className = "task-list";
+
+  data.forEach((task) => {
+    const item = document.createElement("li");
+    item.className = "task-list-item";
+
+    const priorityDot = document.createElement("div");
+    priorityDot.className = `task-priority-dot${task.Priority === "High" ? " task-priority-dot--high" : ""}`;
+    item.appendChild(priorityDot);
+
+    const description = document.createElement("span");
+    description.className = "task-description";
+    description.textContent = task.Description;
+    item.appendChild(description);
+
+    if (role === "user") {
+      const checkbox = document.createElement("input");
+      checkbox.type = "checkbox";
+      checkbox.checked = Boolean(task.IsCompleted);
+      checkbox.addEventListener("change", () => toggleTask(task.TaskID, checkbox.checked));
+      item.appendChild(checkbox);
+    }
+
+    list.appendChild(item);
+  });
+
+  container.appendChild(list);
 }
 
 function updateMetrics(data) {
@@ -404,14 +404,15 @@ function updateMetrics(data) {
     }
   });
 
-  const completionBar = document.querySelector(".glass-card div div[style*='width']");
+  const completionBar = document.querySelector(".completion-bar");
   if (completionBar) {
     const totalProjects = Number(data.totalProjects || 0);
     const pendingTasks = Number(data.pendingTasks || 0);
     const percent = totalProjects > 0
       ? Math.max(0, Math.min(100, Math.round(((totalProjects - pendingTasks) / totalProjects) * 100)))
       : 100;
-    completionBar.style.width = `${percent}%`;
+    const roundedPercent = Math.min(100, Math.max(0, Math.round(percent / 25) * 25));
+    completionBar.className = `completion-bar completion-bar--${roundedPercent}`;
     const percentText = completionBar.parentElement.nextElementSibling;
     if (percentText) percentText.textContent = `OVERALL COMPLETION: ${percent}%`;
   }
@@ -532,7 +533,7 @@ async function loadComplianceDataForClient(userId, { forceRefresh = false } = {}
         return;
       }
 
-      if (statusNode) statusNode.textContent = "Creating fiscal year…";
+      if (statusNode) statusNode.textContent = "Creating fiscal yearâ€¦";
       try {
         await apiRequest("/api/compliance/fiscal-years", {
           method: "POST",
@@ -571,7 +572,7 @@ async function loadComplianceDataForClient(userId, { forceRefresh = false } = {}
         return;
       }
 
-      if (statusNode) statusNode.textContent = "Saving month…";
+      if (statusNode) statusNode.textContent = "Saving monthâ€¦";
       try {
         await apiRequest("/api/compliance/months", {
           method: "POST",
@@ -620,7 +621,7 @@ async function loadComplianceDataForClient(userId, { forceRefresh = false } = {}
         return;
       }
 
-      if (statusNode) statusNode.textContent = "Adding invoice…";
+      if (statusNode) statusNode.textContent = "Adding invoiceâ€¦";
       try {
         await apiRequest("/api/compliance/invoices", {
           method: "POST",
@@ -694,7 +695,7 @@ function bindAdminForms(session) {
           body: JSON.stringify(payload)
         });
         projectForm.reset();
-        projectForm.closest(".auth-shell").style.display = "none";
+        closeModal(projectForm.closest(".auth-shell"));
         await fetchDashboardData(session);
       } catch (err) {
         console.error(err);
@@ -714,7 +715,7 @@ function bindAdminForms(session) {
           body: JSON.stringify(payload)
         });
         taskForm.reset();
-        taskForm.closest(".auth-shell").style.display = "none";
+        closeModal(taskForm.closest(".auth-shell"));
         await fetchDashboardData(session);
       } catch (err) {
         console.error(err);
@@ -759,6 +760,28 @@ function bindAdminForms(session) {
   }
 }
 
+function bindDashboardForms() {
+  document.querySelectorAll("[data-add-page-form]").forEach((form) => {
+    form.addEventListener("submit", addPage);
+  });
+
+  document.querySelectorAll("[data-create-widget-form]").forEach((form) => {
+    form.addEventListener("submit", createWidget);
+  });
+
+  document.querySelectorAll("[data-close-modal]").forEach((button) => {
+    button.addEventListener("click", () => {
+      closeModal(button.closest(".auth-shell"));
+    });
+  });
+
+  document.querySelectorAll("[data-open-modal]").forEach((button) => {
+    button.addEventListener("click", () => {
+      openModalById(button.dataset.openModal);
+    });
+  });
+}
+
 function updateSessionUI(session) {
   const userId = session.userId || session.role;
   document.querySelectorAll("[data-user-id]").forEach((node) => { node.textContent = userId; });
@@ -785,6 +808,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   updateSessionUI(session);
+  bindDashboardForms();
 
   const logoutButton = document.querySelector("[data-logout]");
   if (logoutButton) {
